@@ -1,0 +1,14 @@
+# Local only: 2 underscore prefix
+*\__*
+
+### Visual Studio
+bin/
+obj/
+packages/
+*.sln
+*.user
+*.resx
+Properties/Resources.*
+### Visual D:
+Debug/
+.vs/
