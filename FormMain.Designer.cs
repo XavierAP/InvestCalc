@@ -227,7 +227,7 @@
 			// 
 			// colReturn
 			// 
-			this.colReturn.HeaderText = "Return";
+			this.colReturn.HeaderText = "Yearly";
 			this.colReturn.Name = "colReturn";
 			this.colReturn.ReadOnly = true;
 			// 
