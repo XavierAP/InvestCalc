@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -26,6 +27,7 @@ namespace JP.InvestCalc
 			this.portfolio = portfolio;
 
 			InitializeComponent();
+			lblTotal.Text = $"Total ({NumberFormatInfo.CurrentInfo.CurrencySymbol})";
 			
 			pickDate.Value = DateTime.Now.Date;
 
