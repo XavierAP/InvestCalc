@@ -110,7 +110,7 @@
 			this.numTotal.Location = new System.Drawing.Point(383, 57);
 			this.numTotal.Margin = new System.Windows.Forms.Padding(10);
 			this.numTotal.Maximum = new decimal(new int[] {
-            10000,
+            1000000,
             0,
             0,
             0});
@@ -182,7 +182,7 @@
 			this.numShares.Location = new System.Drawing.Point(383, 10);
 			this.numShares.Margin = new System.Windows.Forms.Padding(10);
 			this.numShares.Maximum = new decimal(new int[] {
-            10000,
+            1000000,
             0,
             0,
             0});
