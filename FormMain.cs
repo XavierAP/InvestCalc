@@ -12,8 +12,9 @@ namespace JP.InvestCalc
 	{
 		// GUI decimal places:
 		const byte
-			precisionPer1 = 4,
-			precisionPer100 = precisionPer1 - 2;
+			precisionMoney = 2, // for money amounts
+			precisionPer100 = precisionMoney, // for percentage amounts
+			precisionPer1 = precisionPer100 + 2; // for amounts per 1 (i.e. % / 100)
 
 		private class Stock // I want a tuple type by reference with named members; these aren't built into the language (System.Tuple's members are unnamed) like the ones by value are since C# 7.0.
 		{
@@ -142,7 +143,7 @@ namespace JP.InvestCalc
 			double shares = stocks[stockName].Shares;
 			Debug.Assert(shares >= 0);
 			Debug.Assert(shares == (double)GetCell(ea.RowIndex, colShares).Value);
-			GetCell(ea.RowIndex, colValue).Value = price * shares;
+			GetCell(ea.RowIndex, colValue).Value = Math.Round(price * shares, precisionMoney);
 
 			// Finally:
 			CalcReturn(stockName, ea.RowIndex, price, shares);

@@ -173,7 +173,7 @@
 			// numShares
 			// 
 			this.numShares.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-			this.numShares.DecimalPlaces = 2;
+			this.numShares.DecimalPlaces = 3;
 			this.numShares.Increment = new decimal(new int[] {
             10,
             0,
