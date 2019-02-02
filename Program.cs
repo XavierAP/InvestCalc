@@ -17,7 +17,7 @@ namespace JP.InvestCalc
 		static Program()
 		{
 			string dataFolder = GetDataFolder();
-			string dataFile = Path.Combine(dataFolder, "Data.DB");
+			string dataFile = Path.Combine(dataFolder, AppName + ".data");
 
 			try
 			{
