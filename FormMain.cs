@@ -11,10 +11,12 @@ namespace JP.InvestCalc
 	internal partial class FormMain :Form
 	{
 		// GUI decimal places:
-		const byte
+		private const byte
 			precisionMoney = 2, // for money amounts
 			precisionPer100 = precisionMoney, // for percentage amounts
 			precisionPer1 = precisionPer100 + 2; // for amounts per 1 (i.e. % / 100)
+
+		private readonly double seedRate = Properties.Settings.Default.seedRate; // needed for the solver
 
 		private sealed class Stock // I want a tuple type by reference with named members; these aren't built into the language (System.Tuple's members are unnamed) like the ones by value are since C# 7.0.
 		{
@@ -156,7 +158,7 @@ namespace JP.InvestCalc
 			var today = UpdateDate();
 
 			GetCell(irow, colReturn).Value = Money.SolveRateInvest(
-				db.GetFlows(stockName), (price * shares, today), precisionPer1 // Data.GetFlows() will never return emtpy: from such a database there would have appeared no row in the DataGridView, to trigger the event this call is coming from.
+				db.GetFlows(stockName), (price * shares, today), precisionPer1, seedRate // Data.GetFlows() will never return emtpy: from such a database there would have appeared no row in the DataGridView, to trigger the event this call is coming from.
 				).ToString("P"+precisionPer100);
 
 			TryCalcReturnAvg(today); // try to calculate the global average return
@@ -179,7 +181,7 @@ namespace JP.InvestCalc
 			txtTotal.Text = total.ToString("C");
 
 			txtReturnAvg.Text = Money.SolveRateInvest(
-				db.GetFlows(), (total, today), precisionPer1
+				db.GetFlows(), (total, today), precisionPer1, seedRate
 				).ToString("P"+precisionPer100);
 		}
 

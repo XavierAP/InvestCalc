@@ -31,5 +31,14 @@ namespace JP.InvestCalc.Properties {
                 return ((string)(this["dataFolder"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.5")]
+        public double seedRate {
+            get {
+                return ((double)(this["seedRate"]));
+            }
+        }
     }
 }
