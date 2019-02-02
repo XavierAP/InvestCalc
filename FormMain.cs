@@ -16,7 +16,7 @@ namespace JP.InvestCalc
 			precisionPer100 = precisionMoney, // for percentage amounts
 			precisionPer1 = precisionPer100 + 2; // for amounts per 1 (i.e. % / 100)
 
-		private class Stock // I want a tuple type by reference with named members; these aren't built into the language (System.Tuple's members are unnamed) like the ones by value are since C# 7.0.
+		private sealed class Stock // I want a tuple type by reference with named members; these aren't built into the language (System.Tuple's members are unnamed) like the ones by value are since C# 7.0.
 		{
 			public double Shares;
 			public int IndexGUI;
@@ -43,7 +43,8 @@ namespace JP.InvestCalc
 			mnuDiv.Click  += (s,e)=> OpRecord(Operation.Div );
 			mnuCost.Click += (s,e)=> OpRecord(Operation.Cost);
 
-			table.CellValidating += ValidatePrice;
+			table.CellValidating += (obj, ea) =>
+				ea.Cancel = !ProcessInput((string)ea.FormattedValue, ea.RowIndex, ea.ColumnIndex);
 		}
 
 
@@ -100,7 +101,8 @@ namespace JP.InvestCalc
 					// Update GUI:
 					var irow = stk.IndexGUI;
 					GetCell(irow, colShares).Value = stk.Shares;
-					GetCell(irow, colReturn).Value = txtReturnAvg.Text = null; // just in case this row's return is calculated, clear it
+					// Update value and return calculation:
+					ProcessInput((string)GetCell(irow, colPrice).Value, irow, colPrice.Index);
 				}
 				else // new stock in portfolio
 				{
@@ -113,40 +115,39 @@ namespace JP.InvestCalc
 
 
 		/// <summary>Handles user input of prices, and if valid triggers return calculation.</summary>
-		private void ValidatePrice(object sender, DataGridViewCellValidatingEventArgs ea)
+		/// <returns>False to force the user to correct or cancel input;
+		/// true in case of valid input or no action required.</returns>
+		private bool ProcessInput(string priceInput, int irow, int icol)
 		{
-			if(ea.ColumnIndex != colPrice.Index)
+			if(icol != colPrice.Index)
 			{
-				Debug.Assert(table.Columns[ea.ColumnIndex].ReadOnly);
-				return; // nothing to do.
+				Debug.Assert(table.Columns[icol].ReadOnly);
+				return true; // nothing to do.
 			}
 
-			string input = ea.FormattedValue.ToString();
-			if(string.IsNullOrEmpty(input)) return; // blank entry or tabbing out mean to cancel input
+			if(string.IsNullOrEmpty(priceInput)) return true; // blank entry or tabbing out mean to cancel input
 
 			bool ok =
-			double.TryParse(input, out double price);
+			double.TryParse(priceInput, out double price);
 			if(!ok)
-			{
-				ea.Cancel = true;
-				return;
-			}
+				return false;
+
 			if(price < 0 || double.IsNaN(price) || double.IsInfinity(price))
 			{
 				MessageBox.Show(this, "Prices must be positive, real numbers.", Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-				ea.Cancel = true;
-				return;
+				return false;
 			}
 
 			// Update value:
-			var stockName = (string)GetCell(ea.RowIndex, colStock).Value;
+			var stockName = (string)GetCell(irow, colStock).Value;
 			double shares = stocks[stockName].Shares;
 			Debug.Assert(shares >= 0);
-			Debug.Assert(shares == (double)GetCell(ea.RowIndex, colShares).Value);
-			GetCell(ea.RowIndex, colValue).Value = Math.Round(price * shares, precisionMoney);
+			Debug.Assert(shares == (double)GetCell(irow, colShares).Value);
+			GetCell(irow, colValue).Value = Math.Round(price * shares, precisionMoney);
 
 			// Finally:
-			CalcReturn(stockName, ea.RowIndex, price, shares);
+			CalcReturn(stockName, irow, price, shares);
+			return true;
 		}
 		
 		
