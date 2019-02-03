@@ -180,7 +180,7 @@ namespace JP.InvestCalc
 
 			GetCell(irow, colReturn).Value = Money.SolveRateInvest(
 				db.GetFlows(stockName), (value, today), precisionPer1, seedRate // Data.GetFlows() will never return emtpy: from such a database there would have appeared no row in the DataGridView, to trigger the event this call is coming from.
-				).ToString("P"+precisionPer100);
+				);
 
 			TryCalcReturnAvg(today); // try to calculate the global average return
 		}
@@ -203,7 +203,7 @@ namespace JP.InvestCalc
 
 			txtReturnAvg.Text = Money.SolveRateInvest(
 				db.GetFlows(), (total, today), precisionPer1, seedRate
-				).ToString("P"+precisionPer100);
+				).ToString(colReturn.DefaultCellStyle.Format);
 		}
 
 
