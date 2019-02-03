@@ -45,9 +45,9 @@ namespace JP.InvestCalc
 
 		private void Form_KeyDown(object sender, KeyEventArgs ea)
 		{
-			const Keys selectAll = Keys.Control | Keys.A;
+			const Keys keySelectAll = Keys.Control | Keys.A;
 
-			if(ea.KeyData == selectAll)
+			if(ea.KeyData == keySelectAll)
 				SelectAll();
 		}
 
