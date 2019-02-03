@@ -23,6 +23,8 @@ equal to the current value
 
 ## Upcoming features
 * Display (and manipulate) order history.
+* Import/export order history from/to CSV.
+* Port as mobile app...
 
 ## Notes
 
