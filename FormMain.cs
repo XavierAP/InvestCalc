@@ -84,6 +84,8 @@ namespace JP.InvestCalc
 
 			if(shares == 0) // can calculate, value is known regardless of price
 				ProcessInput(null, i);
+			else // average calculation no longer valid
+				txtReturnAvg.Text = null;
 
 			return stk;
 		}
@@ -112,7 +114,6 @@ namespace JP.InvestCalc
 				else // new stock in portfolio
 				{
 					AddStock(dlg.StockName, dlg.Shares);
-					txtReturnAvg.Text = null; // new stock with unknown price prevents average calculation
 				}
 				db.OpRecord(!already, dlg.StockName, dlg.Date, dlg.Shares, dlg.Total, dlg.Comment);
 			}
