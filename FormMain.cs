@@ -45,8 +45,7 @@ namespace JP.InvestCalc
 			mnuDiv.Click  += (s,e)=> OpRecord(Operation.Div );
 			mnuCost.Click += (s,e)=> OpRecord(Operation.Cost);
 
-			table.CellValidating += (obj, ea) =>
-				ea.Cancel = !ProcessInput((string)ea.FormattedValue, ea.RowIndex, ea.ColumnIndex);
+			table.CellValidating += ValidatingInput;
 		}
 
 
@@ -82,6 +81,10 @@ namespace JP.InvestCalc
 
 			var stk = new Stock { IndexGUI = i, Shares = shares };
 			stocks.Add(name, stk);
+
+			if(shares == 0) // can calculate, value is known regardless of price
+				ProcessInput(null, i);
+
 			return stk;
 		}
 
@@ -104,7 +107,7 @@ namespace JP.InvestCalc
 					var irow = stk.IndexGUI;
 					GetCell(irow, colShares).Value = stk.Shares;
 					// Update value and return calculation:
-					ProcessInput((string)GetCell(irow, colPrice).Value, irow, colPrice.Index);
+					ProcessInput((string)GetCell(irow, colPrice).Value, irow);
 				}
 				else // new stock in portfolio
 				{
@@ -119,46 +122,63 @@ namespace JP.InvestCalc
 		/// <summary>Handles user input of prices, and if valid triggers return calculation.</summary>
 		/// <returns>False to force the user to correct or cancel input;
 		/// true in case of valid input or no action required.</returns>
-		private bool ProcessInput(string priceInput, int irow, int icol)
+		private bool ProcessInput(string priceInput, int irow)
 		{
-			if(icol != colPrice.Index)
-			{
-				Debug.Assert(table.Columns[icol].ReadOnly);
-				return true; // nothing to do.
-			}
-
-			if(string.IsNullOrEmpty(priceInput)) return true; // blank entry or tabbing out mean to cancel input
-
-			bool ok =
-			double.TryParse(priceInput, out double price);
-			if(!ok)
-				return false;
-
-			if(price < 0 || double.IsNaN(price) || double.IsInfinity(price))
-			{
-				MessageBox.Show(this, "Prices must be positive, real numbers.", Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-				return false;
-			}
-
-			// Update value:
 			var stockName = (string)GetCell(irow, colStock).Value;
 			double shares = stocks[stockName].Shares;
+
+			bool needPrice = shares != 0; // if shares == 0, the present value is known (0) regardless of price.
+			double value;
+
+			if(needPrice)
+			{
+				if(string.IsNullOrEmpty(priceInput))
+					return true; // blank entry or tabbing out mean to cancel input
+
+				bool ok =
+				double.TryParse(priceInput, out double price);
+				if(!ok)
+					return false;
+
+				if(price < 0 || double.IsNaN(price) || double.IsInfinity(price))
+				{
+					MessageBox.Show(this, "Prices must be positive, real numbers.", Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+					return false;
+				}
+
+				value = price * shares;
+			}
+			else value = 0;
+
+			// Update value:
 			Debug.Assert(shares >= 0);
 			Debug.Assert(shares == (double)GetCell(irow, colShares).Value);
-			GetCell(irow, colValue).Value = Math.Round(price * shares, precisionMoney);
+			GetCell(irow, colValue).Value = Math.Round(value, precisionMoney);
 
 			// Finally:
-			CalcReturn(stockName, irow, price, shares);
+			CalcReturn(stockName, irow, value);
 			return true;
 		}
-		
-		
-		private void CalcReturn(string stockName, int irow, double price, double shares)
+
+		/// <summary>Handles user input.</summary>
+		private void ValidatingInput(object sender, DataGridViewCellValidatingEventArgs ea)
+		{
+			if(ea.ColumnIndex != colPrice.Index)
+			{
+				Debug.Assert(table.Columns[ea.ColumnIndex].ReadOnly);
+				return; // nothing to do.
+			}
+
+			ea.Cancel = !ProcessInput((string)ea.FormattedValue, ea.RowIndex);
+		}
+
+
+		private void CalcReturn(string stockName, int irow, double value)
 		{
 			var today = UpdateDate();
 
 			GetCell(irow, colReturn).Value = Money.SolveRateInvest(
-				db.GetFlows(stockName), (price * shares, today), precisionPer1, seedRate // Data.GetFlows() will never return emtpy: from such a database there would have appeared no row in the DataGridView, to trigger the event this call is coming from.
+				db.GetFlows(stockName), (value, today), precisionPer1, seedRate // Data.GetFlows() will never return emtpy: from such a database there would have appeared no row in the DataGridView, to trigger the event this call is coming from.
 				).ToString("P"+precisionPer100);
 
 			TryCalcReturnAvg(today); // try to calculate the global average return
