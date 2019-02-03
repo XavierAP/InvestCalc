@@ -36,6 +36,7 @@ namespace JP.InvestCalc
 			InitializeComponent();
 			table.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
 			colStock.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+			colReturn.DefaultCellStyle.Format = "P" + precisionPer100;
 
 			UpdateDate();
 			FillTable();

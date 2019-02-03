@@ -230,7 +230,6 @@
 			this.colReturn.HeaderText = "Yearly";
 			this.colReturn.Name = "colReturn";
 			this.colReturn.ReadOnly = true;
-			this.colReturn.DefaultCellStyle.Format = "P" + precisionPer100;
 			// 
 			// FormMain
 			// 
