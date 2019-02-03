@@ -46,6 +46,8 @@ namespace JP.InvestCalc
 			mnuDiv.Click  += (s,e)=> OpRecord(Operation.Div );
 			mnuCost.Click += (s,e)=> OpRecord(Operation.Cost);
 
+			mnuHistory.Click += OpsHistory;
+
 			table.CellValidating += ValidatingInput;
 		}
 
@@ -118,6 +120,21 @@ namespace JP.InvestCalc
 				}
 				db.OpRecord(!already, dlg.StockName, dlg.Date, dlg.Shares, dlg.Total, dlg.Comment);
 			}
+		}
+
+
+		/// <summary>Lets the user browse past operations.</summary>
+		private void OpsHistory(object sender, EventArgs ea)
+		{
+			using(var dlg = new FormHistoryFilter(stocks.Keys))
+			{
+				var ans = dlg.ShowDialog(this);
+				if(ans != DialogResult.OK) return;
+
+				//TODO
+			}
+
+			//TODO
 		}
 
 

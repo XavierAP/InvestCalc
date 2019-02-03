@@ -29,6 +29,7 @@
 		private void InitializeComponent()
 		{
 			this.components = new System.ComponentModel.Container();
+			System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
 			this.pnlTab = new System.Windows.Forms.TableLayoutPanel();
 			this.txtReturnAvg = new System.Windows.Forms.TextBox();
 			this.lblReturnAvg = new System.Windows.Forms.Label();
@@ -38,6 +39,8 @@
 			this.mnuSell = new System.Windows.Forms.ToolStripMenuItem();
 			this.mnuDiv = new System.Windows.Forms.ToolStripMenuItem();
 			this.mnuCost = new System.Windows.Forms.ToolStripMenuItem();
+			toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+			this.mnuHistory = new System.Windows.Forms.ToolStripMenuItem();
 			this.txtTotal = new System.Windows.Forms.TextBox();
 			this.lblDate = new System.Windows.Forms.Label();
 			this.lblValueTotal = new System.Windows.Forms.Label();
@@ -130,9 +133,11 @@
             this.mnuBuy,
             this.mnuSell,
             this.mnuDiv,
-            this.mnuCost});
+            this.mnuCost,
+            toolStripSeparator1,
+            this.mnuHistory});
 			this.mnuOperate.Name = "mnuOperate";
-			this.mnuOperate.Size = new System.Drawing.Size(148, 116);
+			this.mnuOperate.Size = new System.Drawing.Size(148, 150);
 			// 
 			// mnuBuy
 			// 
@@ -157,6 +162,17 @@
 			this.mnuCost.Name = "mnuCost";
 			this.mnuCost.Size = new System.Drawing.Size(147, 28);
 			this.mnuCost.Text = "Cost";
+			// 
+			// toolStripSeparator1
+			// 
+			toolStripSeparator1.Name = "toolStripSeparator1";
+			toolStripSeparator1.Size = new System.Drawing.Size(144, 6);
+			// 
+			// mnuHistory
+			// 
+			this.mnuHistory.Name = "mnuHistory";
+			this.mnuHistory.Size = new System.Drawing.Size(147, 28);
+			this.mnuHistory.Text = "History...";
 			// 
 			// txtTotal
 			// 
@@ -272,6 +288,7 @@
 		private System.Windows.Forms.DataGridViewTextBoxColumn colPrice;
 		private System.Windows.Forms.DataGridViewTextBoxColumn colValue;
 		private System.Windows.Forms.DataGridViewTextBoxColumn colReturn;
+		private System.Windows.Forms.ToolStripMenuItem mnuHistory;
 	}
 }
 

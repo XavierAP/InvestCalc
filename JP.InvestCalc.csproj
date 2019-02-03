@@ -55,6 +55,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data.cs" />
+    <Compile Include="FormHistoryFilter.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormHistoryFilter.Designer.cs">
+      <DependentUpon>FormHistoryFilter.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormOp.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -70,6 +76,9 @@
     <Compile Include="Operation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="FormHistoryFilter.resx">
+      <DependentUpon>FormHistoryFilter.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormMain.resx">
       <DependentUpon>FormMain.cs</DependentUpon>
     </EmbeddedResource>
