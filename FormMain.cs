@@ -199,7 +199,7 @@ namespace JP.InvestCalc
 				total += value;
 			}
 
-			txtTotal.Text = total.ToString("C");
+			txtTotal.Text = total.ToString("C" + precisionMoney);
 
 			txtReturnAvg.Text = Money.SolveRateInvest(
 				db.GetFlows(), (total, today), precisionPer1, seedRate
