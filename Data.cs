@@ -4,6 +4,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 
 using JP.SQLite;
 
@@ -86,6 +87,55 @@ from Flows, Stocks ON Flows.stock == Stocks.id
 				return from DataRow record in table.Rows select (
 					(double)record[0],
 					new DateTime((long)record[1], DateTimeKind.Utc) );
+		}
+
+
+		/// <summary>Populates a <see cref="DataGridView"/> with full details of
+		/// the operations done between given dates concerning given stocks.</summary>
+		public void
+		GetHistory(ref DataGridView guiTable,
+			IEnumerable<string> stockNames, DateTime dateFrom, DateTime dateTo)
+		{
+			var sql = new StringBuilder(@"
+SELECT Flows.rowid, utcDate, name, shares, flow, comment
+from Flows, Stocks ON Flows.stock == Stocks.id
+");
+			sql.AppendLine(string.Format("where utcDate >= {0} AND utcDate <= {1}",
+				dateFrom.ToUniversalTime().Ticks, dateTo.ToUniversalTime().Ticks));
+
+			if(stockNames != null && stockNames.Any())
+				sql.Append("AND ( ").Append(string.Join(" OR ",
+					from name in stockNames
+					select $"name == '{name}'")).AppendLine(" )");
+
+			sql.Append("order by utcDate");
+
+			Debug.Assert(
+				guiTable.Columns.Count >= 6 &&
+				guiTable.Columns[0].Name == "colDate"    &&
+				guiTable.Columns[1].Name == "colStock"   &&
+				guiTable.Columns[2].Name == "colShares"  &&
+				guiTable.Columns[3].Name == "colFlow"    &&
+				guiTable.Columns[4].Name == "colPrice"   &&
+				guiTable.Columns[5].Name == "colComment"
+				);
+
+			using(var table = connection.Select(sql.ToString()))
+				foreach(DataRow record in table.Rows)
+				{
+					var date = new DateTime((long)record[1], DateTimeKind.Utc).ToLocalTime().ToShortDateString();
+					var stockName = (string)record[2];
+					var shares    = (double)record[3];
+					var flow      = (double)record[4];
+
+					double priceAvg = Math.Round(-flow / shares, FormMain.precisionMoney);
+
+					string comment = record[5] == DBNull.Value ? null : (string)record[5];
+
+					int i =
+					guiTable.Rows.Add( date, stockName, shares, flow, priceAvg, comment );
+					guiTable.Rows[i].Tag = record[0]; // store database rowid internally
+				}
 		}
 	}
 }

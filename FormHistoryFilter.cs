@@ -8,8 +8,13 @@ namespace JP.InvestCalc
 {
 	internal partial class FormHistoryFilter :Form
 	{
-		public FormHistoryFilter(IEnumerable<string> portfolio)
+		private readonly Data db;
+
+		public FormHistoryFilter(Data db, IEnumerable<string> portfolio)
 		{
+			Debug.Assert(db != null);
+			this.db = db;
+
 			InitializeComponent();
 			
 			listStocks.Items.AddRange(portfolio.ToArray());
@@ -25,7 +30,7 @@ namespace JP.InvestCalc
 			pickDateFrom.ValueChanged += (s,e)=> RestrictDate(pickDateFrom);
 			pickDateTo  .ValueChanged += (s,e)=> RestrictDate(pickDateTo  );
 
-			FormClosing += Form_Closing;
+			btnOK.Click += Launch;
 		}
 
 		private void RestrictDate(DateTimePicker pickControl)
@@ -51,17 +56,22 @@ namespace JP.InvestCalc
 				SelectAll();
 		}
 
-		private void Form_Closing(object sender, FormClosingEventArgs ea)
+		private void Launch(object sender, EventArgs ea)
 		{
-			if(DialogResult != DialogResult.OK) return;
-
 			if(listStocks.SelectedItems.Count <= 0)
 			{
 				MessageBox.Show(this, "No stocks selected.\nPress Ctrl+A to select all.", Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
 				SelectAll();
-				ea.Cancel = true;
 				return;
 			}
+
+			var stocks = (
+				from object item in listStocks.SelectedItems
+				select (string)item
+				);
+
+			using(var dlg = new FormHistory(db, stocks, pickDateFrom.Value, pickDateTo.Value))
+				dlg.ShowDialog(this);
 		}
 	}
 }

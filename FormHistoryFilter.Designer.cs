@@ -107,7 +107,6 @@
 			this.btnOK.Anchor = System.Windows.Forms.AnchorStyles.None;
 			this.btnOK.AutoSize = true;
 			this.btnOK.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-			this.btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
 			this.btnOK.Location = new System.Drawing.Point(10, 266);
 			this.btnOK.Margin = new System.Windows.Forms.Padding(10);
 			this.btnOK.Name = "btnOK";

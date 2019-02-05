@@ -19,3 +19,5 @@ create table Flows ( -- Record of purchases, sales, dividends, holding costst, e
 );
 create index idxFlow2Stock
 on Flows(stock);
+create index idxFlowDate
+on Flows(utcDate);

@@ -11,7 +11,7 @@ namespace JP.InvestCalc
 	internal partial class FormMain :Form
 	{
 		// GUI decimal places:
-		private const byte
+		public const byte
 			precisionMoney = 2, // for money amounts
 			precisionPer100 = precisionMoney, // for percentage amounts
 			precisionPer1 = precisionPer100 + 2; // for amounts per 1 (i.e. % / 100)
@@ -126,15 +126,8 @@ namespace JP.InvestCalc
 		/// <summary>Lets the user browse past operations.</summary>
 		private void OpsHistory(object sender, EventArgs ea)
 		{
-			using(var dlg = new FormHistoryFilter(stocks.Keys))
-			{
-				var ans = dlg.ShowDialog(this);
-				if(ans != DialogResult.OK) return;
-
-				//TODO
-			}
-
-			//TODO
+			using(var dlg = new FormHistoryFilter(db, stocks.Keys))
+				dlg.ShowDialog(this);
 		}
 
 
