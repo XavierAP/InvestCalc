@@ -96,6 +96,8 @@ from Flows, Stocks ON Flows.stock == Stocks.id
 		GetHistory(ref DataGridView guiTable,
 			IEnumerable<string> stockNames, DateTime dateFrom, DateTime dateTo)
 		{
+			Debug.Assert(dateFrom <= dateTo);
+
 			var sql = new StringBuilder(@"
 SELECT Flows.rowid, utcDate, name, shares, flow, comment
 from Flows, Stocks ON Flows.stock == Stocks.id
