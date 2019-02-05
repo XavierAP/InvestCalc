@@ -25,6 +25,10 @@ namespace JP.InvestCalc
 			KeyPreview = true;
 			KeyDown += Form_KeyDown;
 
+			// Arbitrary "from", but make both same kind (local):
+			pickDateFrom.Value = new DateTime(2000, 1, 1, 0,0,0, DateTimeKind.Local);
+			pickDateTo  .Value = DateTime.Now.Date;
+
 			RestrictDate(pickDateFrom);
 			RestrictDate(pickDateTo  );
 			pickDateFrom.ValueChanged += (s,e)=> RestrictDate(pickDateFrom);
