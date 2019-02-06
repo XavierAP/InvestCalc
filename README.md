@@ -14,6 +14,7 @@ Program to keep track of investments and calculate their returns.
 (currently owned shares of every stock).
 
 * Displays order history.
+Can filter by dates and stocks.
 
 * Calculates the equivalent yearly return of each investment,
 and all investments together.
