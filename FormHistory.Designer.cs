@@ -36,12 +36,12 @@
 			this.colFlow = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.colPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.colComment = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.mnu = new System.Windows.Forms.ContextMenuStrip(this.components);
+			this.mnuCommands = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.mnuDelete = new System.Windows.Forms.ToolStripMenuItem();
 			this.mnuExport = new System.Windows.Forms.ToolStripMenuItem();
 			this.mnuImport = new System.Windows.Forms.ToolStripMenuItem();
 			((System.ComponentModel.ISupportInitialize)(this.table)).BeginInit();
-			this.mnu.SuspendLayout();
+			this.mnuCommands.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// table
@@ -59,6 +59,7 @@
             this.colFlow,
             this.colPrice,
             this.colComment});
+			this.table.ContextMenuStrip = this.mnuCommands;
 			this.table.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.table.Location = new System.Drawing.Point(0, 0);
 			this.table.Margin = new System.Windows.Forms.Padding(4);
@@ -108,14 +109,14 @@
 			// 
 			// mnu
 			// 
-			this.mnu.Font = new System.Drawing.Font("Segoe UI", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.mnu.ImageScalingSize = new System.Drawing.Size(20, 20);
-			this.mnu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+			this.mnuCommands.Font = new System.Drawing.Font("Segoe UI", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.mnuCommands.ImageScalingSize = new System.Drawing.Size(20, 20);
+			this.mnuCommands.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mnuDelete,
             this.mnuExport,
             this.mnuImport});
-			this.mnu.Name = "mnu";
-			this.mnu.Size = new System.Drawing.Size(214, 116);
+			this.mnuCommands.Name = "mnu";
+			this.mnuCommands.Size = new System.Drawing.Size(214, 116);
 			// 
 			// mnuDelete
 			// 
@@ -150,7 +151,7 @@
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.Text = "Operation history";
 			((System.ComponentModel.ISupportInitialize)(this.table)).EndInit();
-			this.mnu.ResumeLayout(false);
+			this.mnuCommands.ResumeLayout(false);
 			this.ResumeLayout(false);
 
 		}
@@ -164,7 +165,7 @@
 		private System.Windows.Forms.DataGridViewTextBoxColumn colFlow;
 		private System.Windows.Forms.DataGridViewTextBoxColumn colPrice;
 		private System.Windows.Forms.DataGridViewTextBoxColumn colComment;
-		private System.Windows.Forms.ContextMenuStrip mnu;
+		private System.Windows.Forms.ContextMenuStrip mnuCommands;
 		private System.Windows.Forms.ToolStripMenuItem mnuDelete;
 		private System.Windows.Forms.ToolStripMenuItem mnuExport;
 		private System.Windows.Forms.ToolStripMenuItem mnuImport;
