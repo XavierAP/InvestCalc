@@ -64,14 +64,31 @@ namespace JP.InvestCalc
 		/// <summary>Populates the table, assuming it's empty.</summary>
 		private void FillTable()
 		{
-			Debug.Assert(stocks.Count == 0);
+			table.SuspendLayout();
 
-			foreach(var stk in db.GetPortfolio())
+			// Remember prices if the user has entered any:
+			var prices = (
+				from DataGridViewRow row in table.Rows
+				let value = GetCell(row, colPrice).Value
+				where value != null
+				select ( Name: (string)GetCell(row, colStock).Value, Price: value )
+				).ToDictionary( stk=>stk.Name, stk=>stk.Price );
+
+			table.Rows.Clear();
+			stocks.Clear();
+
+			foreach(var entry in db.GetPortfolio())
 			{
-				var (name, shares) = stk;
+				var (name, shares) = entry;
 				Debug.Assert(shares >= 0); // database sanity check
+				var stk =
 				AddStock(name, shares);
+
+				if(prices.ContainsKey(name))
+					GetCell(stk.IndexGUI, colPrice).Value = prices[name];
 			}
+
+			table.ResumeLayout();
 		}
 
 
@@ -128,6 +145,8 @@ namespace JP.InvestCalc
 		{
 			using(var dlg = new FormHistoryFilter(db, stocks.Keys))
 				dlg.ShowDialog(this);
+
+			if(db.Dirty) FillTable();
 		}
 
 
@@ -190,7 +209,7 @@ namespace JP.InvestCalc
 			var today = UpdateDate();
 
 			GetCell(irow, colReturn).Value = Money.SolveRateInvest(
-				db.GetFlows(stockName), (value, today), precisionPer1, seedRate // Data.GetFlows() will never return emtpy: from such a database there would have appeared no row in the DataGridView, to trigger the event this call is coming from.
+				db.GetFlows(stockName), (value, today), precisionPer1, seedRate
 				);
 
 			TryCalcReturnAvg(today); // try to calculate the global average return

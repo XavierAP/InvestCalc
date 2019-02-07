@@ -19,6 +19,8 @@ namespace JP.InvestCalc
 		{
 			Debug.Assert(connection != null);
 			this.connection = connection;
+
+			Dirty = true;
 		}
 
 
@@ -40,6 +42,8 @@ order by name"))
 				foreach(DataRow record in table.Rows)
 					yield return ( (string)record[0], (double)record[1] );
 			}
+
+			Dirty = false;
 		}
 
 
@@ -140,6 +144,24 @@ from Flows, Stocks ON Flows.stock == Stocks.id
 					guiTable.Rows.Add( date, stockName, shares, flow, priceAvg, comment );
 					guiTable.Rows[i].Tag = record[0]; // store database rowid internally
 				}
+		}
+
+
+		/// <summary>Whether the database has been modified and
+		/// it is not yet updated on <see cref="FormMain"/>.</summary>
+		public bool Dirty { get; private set; }
+
+
+		public void
+		DeleteFlows(DataGridViewSelectedRowCollection guiRows)
+		{
+			Debug.Assert(guiRows != null && guiRows.Count > 0);
+
+			var sql = string.Format("DELETE from Flows where rowid IN ( {0} )", string.Join(", ",
+				from DataGridViewRow row in guiRows select (long)row.Tag
+				));
+			connection.Write(sql);
+			Dirty = true;
 		}
 	}
 }

@@ -1,14 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using System.Windows.Forms;
 
 namespace JP.InvestCalc
 {
 	internal partial class FormHistory :Form
 	{
+		private readonly Data db;
+
 		public FormHistory(Data db, IEnumerable<string> stocks, DateTime dateFrom, DateTime dateTo)
 		{
+			Debug.Assert(db != null);
+			this.db = db;
+
 			InitializeComponent();
 
 			/* We use these events just to control what menu options are available
@@ -16,6 +22,8 @@ namespace JP.InvestCalc
 			 * In the chronological order they are triggered: */
 			table.MouseDown += Table_MouseDown;
 			table.CellMouseDown += Table_CellMouseDown;
+
+			mnuDelete.Click += DoDelete;
 
 			colShares.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
 			colFlow  .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
@@ -52,6 +60,33 @@ namespace JP.InvestCalc
 					mnuCommands.Enabled = true;
 				}
 			}
+		}
+
+
+		private void DoDelete(object sender, EventArgs ea)
+		{
+			Debug.Assert(table.SelectedRows.Count > 0);
+			
+			// Compose confirmation message:
+			var msg = table.SelectedRows.Count > 1 ?
+				"Are you sure you want to delete ALL the selected records?" :
+				"Are you sure you want to delete the selected record?" ;
+
+			var ans = MessageBox.Show(this, msg, "Please confirm",
+				MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+
+			if(ans != DialogResult.Yes) return;
+
+			// Delete from database:
+			db.DeleteFlows(table.SelectedRows);
+
+			// Delete from GUI:
+			table.SuspendLayout();
+
+			foreach(DataGridViewRow row in table.SelectedRows)
+				table.Rows.Remove(row);
+
+			table.ResumeLayout();
 		}
 	}
 }
