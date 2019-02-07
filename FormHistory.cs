@@ -28,7 +28,6 @@ namespace JP.InvestCalc
 			db.GetHistory(ref table, stocks, dateFrom, dateTo);
 		}
 
-
 		private void Table_MouseDown(object sender, MouseEventArgs ea)
 		{
 			mnuCommands.Enabled = false; // gray menu out by default, in case clicked on an empty area; just afterwards, CellMouseDown chooses what to enable.
@@ -41,14 +40,15 @@ namespace JP.InvestCalc
 			 * unless there is already another multiple selection, which may be annoying to lose. */
 			if(ea.Button == MouseButtons.Right)
 			{
-				if(table.Rows[ea.RowIndex].Selected)
+				var rowClicked = table.Rows[ea.RowIndex];
+				if(rowClicked.Selected)
 				{
 					mnuCommands.Enabled = true;
 				}
 				else if(table.SelectedRows.Count <= 1)
 				{
-					table.CurrentCell = table.Rows[ea.RowIndex].Cells[ea.ColumnIndex];
-					Debug.Assert(table.Rows[ea.RowIndex].Selected);
+					table.CurrentCell = rowClicked.Cells[ea.ColumnIndex];
+					Debug.Assert(rowClicked.Selected);
 					mnuCommands.Enabled = true;
 				}
 			}
