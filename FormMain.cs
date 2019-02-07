@@ -85,7 +85,11 @@ namespace JP.InvestCalc
 				AddStock(name, shares);
 
 				if(prices.ContainsKey(name))
-					GetCell(stk.IndexGUI, colPrice).Value = prices[name];
+				{
+					var price = (string)prices[name];
+					GetCell(stk.IndexGUI, colPrice).Value = price;
+					ProcessInput(price, stk.IndexGUI);
+				}
 			}
 
 			table.ResumeLayout();
