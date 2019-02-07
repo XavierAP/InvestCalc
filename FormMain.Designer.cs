@@ -121,7 +121,7 @@
 			this.table.Margin = new System.Windows.Forms.Padding(4);
 			this.table.Name = "table";
 			this.table.RowTemplate.Height = 24;
-			this.table.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+			this.table.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
 			this.table.Size = new System.Drawing.Size(554, 339);
 			this.table.TabIndex = 1;
 			// 
