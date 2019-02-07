@@ -67,8 +67,8 @@
 			pnl.AutoSize = true;
 			pnl.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			pnl.ColumnCount = 2;
-			pnl.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-			pnl.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			pnl.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+			pnl.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
 			pnl.Controls.Add(this.listStocks, 0, 0);
 			pnl.Controls.Add(this.btnOK, 0, 3);
 			pnl.Controls.Add(this.btnCancel, 1, 3);
