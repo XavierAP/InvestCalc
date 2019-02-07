@@ -16,8 +16,8 @@ namespace JP.InvestCalc
 		{
 			InitializeComponent();
 
-			colShares.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-			colFlow  .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+			colShares.DefaultCellStyle.Alignment =
+			colFlow  .DefaultCellStyle.Alignment =
 			colPrice .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
 
 			colFlow.DefaultCellStyle.Format =
