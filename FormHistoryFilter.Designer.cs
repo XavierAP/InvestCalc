@@ -67,8 +67,8 @@
 			pnl.AutoSize = true;
 			pnl.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			pnl.ColumnCount = 2;
-			pnl.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-			pnl.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			pnl.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+			pnl.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
 			pnl.Controls.Add(this.listStocks, 0, 0);
 			pnl.Controls.Add(this.btnOK, 0, 3);
 			pnl.Controls.Add(this.btnCancel, 1, 3);
@@ -113,7 +113,7 @@
 			this.btnOK.Padding = new System.Windows.Forms.Padding(20, 10, 20, 10);
 			this.btnOK.Size = new System.Drawing.Size(113, 50);
 			this.btnOK.TabIndex = 5;
-			this.btnOK.Text = "   OK   ";
+			this.btnOK.Text = "Show";
 			this.btnOK.UseVisualStyleBackColor = false;
 			// 
 			// btnCancel
@@ -128,7 +128,7 @@
 			this.btnCancel.Padding = new System.Windows.Forms.Padding(20, 10, 20, 10);
 			this.btnCancel.Size = new System.Drawing.Size(111, 50);
 			this.btnCancel.TabIndex = 6;
-			this.btnCancel.Text = "Cancel";
+			this.btnCancel.Text = "Back";
 			this.btnCancel.UseVisualStyleBackColor = false;
 			// 
 			// pickDateFrom

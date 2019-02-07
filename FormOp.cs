@@ -71,6 +71,8 @@ namespace JP.InvestCalc
 				{
 					MessageBox.Show(this, "Cannot sell more shares than you own.", Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
 					numShares.Value = max;
+					ea.Cancel = true;
+					return;
 				}
 			}
 
