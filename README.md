@@ -13,6 +13,9 @@ Program to keep track of investments and calculate their returns.
 * Displays the current portfolio
 (currently owned shares of every stock).
 
+* Displays order history.
+Can filter by dates and stocks.
+
 * Calculates the equivalent yearly return of each investment,
 and all investments together.
 This is done after the user has entered the current price(s).
@@ -22,7 +25,7 @@ equal to the current value
 (current price multiplied by number of shares currently owned).
 
 ## Upcoming features
-* Display (and manipulate) order history.
+* Manipulate order history: delete records.
 * Import/export order history from/to CSV.
 * Port as mobile app...
 

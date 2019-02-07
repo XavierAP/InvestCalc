@@ -89,6 +89,17 @@ namespace JP.InvestCalc
 			}
 
 			table.ResumeLayout();
+			
+			if(!Visible && stocks.Count == 0) // program startup with empty portfolio
+				Shown += PromptHelp;
+		}
+
+		private void PromptHelp(object sender, EventArgs ea)
+		{
+			MessageBox.Show(this,
+				"Right-click on the table for options and commands.", Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+			Shown -= PromptHelp;
 		}
 
 
@@ -128,14 +139,15 @@ namespace JP.InvestCalc
 					// Update GUI:
 					var irow = stk.IndexGUI;
 					GetCell(irow, colShares).Value = stk.Shares;
-					// Update value and return calculation:
-					ProcessInput((string)GetCell(irow, colPrice).Value, irow);
+
+					db.OpRecord(false, dlg.StockName, dlg.Date, dlg.Shares, dlg.Total, dlg.Comment);
+					ProcessInput((string)GetCell(irow, colPrice).Value, irow); // only after the database is updated!
 				}
 				else // new stock in portfolio
 				{
 					AddStock(dlg.StockName, dlg.Shares);
+					db.OpRecord(true, dlg.StockName, dlg.Date, dlg.Shares, dlg.Total, dlg.Comment);
 				}
-				db.OpRecord(!already, dlg.StockName, dlg.Date, dlg.Shares, dlg.Total, dlg.Comment);
 			}
 		}
 
