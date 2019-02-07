@@ -23,7 +23,7 @@ namespace JP.InvestCalc
 			table.MouseDown += Table_MouseDown;
 			table.CellMouseDown += Table_CellMouseDown;
 
-			mnuDelete.Click += DoDelete;
+			//mnuDelete.Click += DoDelete;
 
 			colShares.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
 			colFlow  .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
