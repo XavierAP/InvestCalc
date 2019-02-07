@@ -72,6 +72,17 @@ namespace JP.InvestCalc
 				Debug.Assert(shares >= 0); // database sanity check
 				AddStock(name, shares);
 			}
+
+			if(stocks.Count == 0)
+				Shown += PromptHelp;
+		}
+
+		private void PromptHelp(object sender, EventArgs ea)
+		{
+			MessageBox.Show(this,
+				"Right-click on the table for options and commands.", Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+			Shown -= PromptHelp;
 		}
 
 
