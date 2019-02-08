@@ -116,7 +116,7 @@ from Flows, Stocks ON Flows.stock == Stocks.id
 					from name in stockNames
 					select $"name == '{name}'")).AppendLine(" )");
 
-			sql.Append("order by utcDate");
+			sql.Append("order by utcDate, shares DESC"); // TL;DR why order by shares DESC: corner case of several operations, with the same stock, in the same day. Chronological order may be lots because dates are rounded down to days; and it would create an absurd history, if the user deleted manually (see DeleteFlows, FormHistory.DoDelete and FormHistory.Table_CellMouseDown) a flow buying shares, so that later flows selling put the total owned into negative.
 
 			Debug.Assert(
 				guiTable.Columns.Count >= 6 &&
@@ -152,6 +152,7 @@ from Flows, Stocks ON Flows.stock == Stocks.id
 		public bool Dirty { get; private set; }
 
 
+		/// <summary>Deletes the rows currently selected in the DataGridView.</summary>
 		public void
 		DeleteFlows(DataGridViewSelectedRowCollection guiRows)
 		{

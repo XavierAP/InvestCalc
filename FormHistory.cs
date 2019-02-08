@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
@@ -12,8 +13,12 @@ namespace JP.InvestCalc
 
 		public FormHistory(Data db, IEnumerable<string> stocks, DateTime dateFrom, DateTime dateTo)
 		{
-			Debug.Assert(db != null);
+			Debug.Assert(db != null && stocks != null);
 			this.db = db;
+
+			var portfolio = stocks.ToArray();
+			Debug.Assert(portfolio.Length > 0);
+			deleteCheckCache = new HashSet<string>(portfolio.Length);
 
 			InitializeComponent();
 
@@ -23,7 +28,7 @@ namespace JP.InvestCalc
 			table.MouseDown += Table_MouseDown;
 			table.CellMouseDown += Table_CellMouseDown;
 
-			//mnuDelete.Click += DoDelete;
+			mnuDelete.Click += DoDelete;
 
 			colShares.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
 			colFlow  .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
@@ -33,8 +38,9 @@ namespace JP.InvestCalc
 			colPrice.DefaultCellStyle.Format =
 				"C" + FormMain.precisionMoney;
 
-			db.GetHistory(ref table, stocks, dateFrom, dateTo);
+			db.GetHistory(ref table, portfolio, dateFrom, dateTo);
 		}
+
 
 		private void Table_MouseDown(object sender, MouseEventArgs ea)
 		{
@@ -49,18 +55,37 @@ namespace JP.InvestCalc
 			if(ea.Button == MouseButtons.Right)
 			{
 				var rowClicked = table.Rows[ea.RowIndex];
-				if(rowClicked.Selected)
-				{
-					mnuCommands.Enabled = true;
-				}
-				else if(table.SelectedRows.Count <= 1)
+				if(!rowClicked.Selected && table.SelectedRows.Count <= 1)
 				{
 					table.CurrentCell = rowClicked.Cells[ea.ColumnIndex];
 					Debug.Assert(rowClicked.Selected);
-					mnuCommands.Enabled = true;
 				}
+				mnuCommands.Enabled = rowClicked.Selected;
 			}
+
+			mnuDelete.Enabled = IsDeleteAllowable();
 		}
+		
+
+		private bool IsDeleteAllowable()
+		{
+			deleteCheckCache.Clear();
+			// Proceed back in time from the last flow:
+			for(int i = table.Rows.Count - 1; i >= 0; --i)
+			{
+				var row = table.Rows[i];
+				if(row.Selected)
+				{
+					// allow deletion only of the last flow(s) for each stock:
+					if(deleteCheckCache.Contains(GetStockName(row)))
+						return false;
+				}
+				else // note down what stocks have been operated chronologically after the records to delete:
+					deleteCheckCache.Add(GetStockName(row));
+			}
+			return true;
+		}
+		private HashSet<string> deleteCheckCache;
 
 
 		private void DoDelete(object sender, EventArgs ea)
@@ -78,6 +103,7 @@ namespace JP.InvestCalc
 			if(ans != DialogResult.Yes) return;
 
 			// Delete from database:
+			Debug.Assert(IsDeleteAllowable());
 			db.DeleteFlows(table.SelectedRows);
 
 			// Delete from GUI:
@@ -88,5 +114,9 @@ namespace JP.InvestCalc
 
 			table.ResumeLayout();
 		}
+
+
+		private string GetStockName(DataGridViewRow row)
+			=> (string)row.Cells[colStock.Index].Value;
 	}
 }
