@@ -31,6 +31,8 @@ namespace JP.InvestCalc
 			table.CellMouseDown += Table_CellMouseDown;
 
 			mnuDelete.Click += DoDelete;
+			mnuExport.Visible = false;
+			mnuImport.Visible = false;
 
 			colShares.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
 			colFlow  .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
