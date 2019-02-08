@@ -11,6 +11,8 @@ namespace JP.InvestCalc
 	{
 		private readonly Data db;
 
+		private readonly DataGridViewRow[] rowsOrdered;
+
 		public FormHistory(Data db, IEnumerable<string> stocks, DateTime dateFrom, DateTime dateTo)
 		{
 			Debug.Assert(db != null && stocks != null);
@@ -38,32 +40,39 @@ namespace JP.InvestCalc
 			colPrice.DefaultCellStyle.Format =
 				"C" + FormMain.precisionMoney;
 
-			db.GetHistory(ref table, portfolio, dateFrom, dateTo);
+			rowsOrdered =
+			db.GetHistory(table, portfolio, dateFrom, dateTo);
+			// Keeping this order is needed by IsDeleteAllowable(), in case the user reorders the table by clicking on the column headers.
+			Debug.Assert(rowsOrdered.Length == table.Rows.Count);
 		}
 
 
 		private void Table_MouseDown(object sender, MouseEventArgs ea)
 		{
-			mnuCommands.Enabled = false; // gray menu out by default, in case clicked on an empty area; just afterwards, CellMouseDown chooses what to enable.
+			// Gray these options out by default from the context menu, because they aren't valid if the user clicked on an empty area; just afterwards, CellMouseDown chooses what to enable.
+			mnuDelete.Enabled =
+			mnuExport.Enabled = false;
 		}
 
 		private void Table_CellMouseDown(object sender, DataGridViewCellMouseEventArgs ea)
 		{
+			if(ea.RowIndex < 0) return; // happens -1 if the user clicks on the headers.
+
+			var rowClicked = table.Rows[ea.RowIndex];
 			/* Right-clicking on a DataGridView does not change selection by default.
 			 * We want it to select the right-clicked row, if not already selected,
 			 * unless there is already another multiple selection, which may be annoying to lose. */
 			if(ea.Button == MouseButtons.Right)
 			{
-				var rowClicked = table.Rows[ea.RowIndex];
 				if(!rowClicked.Selected && table.SelectedRows.Count <= 1)
 				{
 					table.CurrentCell = rowClicked.Cells[ea.ColumnIndex];
 					Debug.Assert(rowClicked.Selected);
 				}
-				mnuCommands.Enabled = rowClicked.Selected;
+				mnuExport.Enabled = rowClicked.Selected;
 			}
-
-			mnuDelete.Enabled = IsDeleteAllowable();
+			mnuDelete.Enabled = rowClicked.Selected && IsDeleteAllowable();
+			mnuDelete.ToolTipText = mnuDelete.Enabled ? null : "Only the chronologically last operation(s) on each stock may be deleted.";
 		}
 		
 
@@ -71,9 +80,9 @@ namespace JP.InvestCalc
 		{
 			deleteCheckCache.Clear();
 			// Proceed back in time from the last flow:
-			for(int i = table.Rows.Count - 1; i >= 0; --i)
+			for(int i = rowsOrdered.Length - 1; i >= 0; --i)
 			{
-				var row = table.Rows[i];
+				var row = rowsOrdered[i];
 				if(row.Selected)
 				{
 					// allow deletion only of the last flow(s) for each stock:

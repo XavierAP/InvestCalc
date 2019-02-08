@@ -94,11 +94,15 @@ from Flows, Stocks ON Flows.stock == Stocks.id
 		}
 
 
-		/// <summary>Populates a <see cref="DataGridView"/> with full details of
-		/// the operations done between given dates concerning given stocks.</summary>
-		public void
-		GetHistory(ref DataGridView guiTable,
-			IEnumerable<string> stockNames, DateTime dateFrom, DateTime dateTo)
+		/// <summary>Retrieves the full details of the flows
+		/// between given dates concerning given stocks,
+		/// and populates a <see cref="DataGridView"/> with them.</summary>
+		/// <returns>A populated array of <see cref="DataGridViewRow"/>s,
+		/// ordered chronologically according to the database.
+		/// The same rows are already added into the <see cref="DataGridView"/>,
+		/// with this same initial order.</returns>
+		internal DataGridViewRow[]
+		GetHistory(DataGridView guiTable, string[] stockNames, DateTime dateFrom, DateTime dateTo)
 		{
 			dateFrom = dateFrom.Date;
 			dateTo   = dateTo  .Date;
@@ -128,22 +132,32 @@ from Flows, Stocks ON Flows.stock == Stocks.id
 				guiTable.Columns[5].Name == "colComment"
 				);
 
+			DataGridViewRow[] guiRowsOrdered;
+			int k = 0;
 			using(var table = connection.Select(sql.ToString()))
+			{
+				guiRowsOrdered = new DataGridViewRow[table.Rows.Count];
 				foreach(DataRow record in table.Rows)
 				{
 					var date = new DateTime((long)record[1], DateTimeKind.Utc).ToLocalTime().ToShortDateString();
 					var stockName = (string)record[2];
-					var shares    = (double)record[3];
-					var flow      = (double)record[4];
+					var shares = (double)record[3];
+					var flow = (double)record[4];
 
 					double priceAvg = Math.Round(-flow / shares, FormMain.precisionMoney);
 
 					string comment = record[5] == DBNull.Value ? null : (string)record[5];
 
 					int i =
-					guiTable.Rows.Add( date, stockName, shares, flow, priceAvg, comment );
-					guiTable.Rows[i].Tag = record[0]; // store database rowid internally
+					guiTable.Rows.Add(date, stockName, shares, flow, priceAvg, comment);
+					var guiRow = guiTable.Rows[i];
+					guiRow.Tag = record[0]; // store database rowid internally
+					guiRowsOrdered[k] = guiRow;
+					++k;
 				}
+				Debug.Assert(k == guiRowsOrdered.Length);
+			}
+			return guiRowsOrdered;
 		}
 
 
