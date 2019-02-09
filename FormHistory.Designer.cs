@@ -128,7 +128,7 @@
 			// 
 			this.mnuExport.Name = "mnuExport";
 			this.mnuExport.Size = new System.Drawing.Size(213, 28);
-			this.mnuExport.Text = "Export to CSV file";
+			this.mnuExport.Text = "Export to CSV";
 			// 
 			// mnuImport
 			// 

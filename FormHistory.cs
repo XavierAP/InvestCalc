@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -31,8 +32,8 @@ namespace JP.InvestCalc
 			table.CellMouseDown += Table_CellMouseDown;
 
 			mnuDelete.Click += DoDelete;
-			mnuExport.Visible = false;
-			mnuImport.Visible = false;
+			mnuExport.Click += DoExport;
+			mnuImport.Visible = false; //TODO
 
 			colShares.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
 			colFlow  .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
@@ -96,8 +97,11 @@ namespace JP.InvestCalc
 			}
 			return true;
 		}
+
 		private HashSet<string> deleteCheckCache;
 
+		private string GetStockName(DataGridViewRow row)
+			=> (string)row.Cells[colStock.Index].Value;
 
 		private void DoDelete(object sender, EventArgs ea)
 		{
@@ -127,7 +131,36 @@ namespace JP.InvestCalc
 		}
 
 
-		private string GetStockName(DataGridViewRow row)
-			=> (string)row.Cells[colStock.Index].Value;
+		private string csvSeparator = Properties.Settings.Default.csvSeparator;
+
+		private void DoExport(object sender, EventArgs ea)
+		{
+			var csv = new StringBuilder();
+
+			foreach(DataGridViewColumn col in table.Columns)
+				csv.Append(col.HeaderText).Append(csvSeparator);
+
+			BackDown(csv, csvSeparator)
+				.AppendLine();
+
+			foreach(DataGridViewRow row in table.SelectedRows)
+			{
+				foreach(DataGridViewCell cell in row.Cells)
+					csv.Append(cell.Value).Append(csvSeparator);
+
+				BackDown(csv, csvSeparator)
+					.AppendLine();
+			}
+
+			using(var dlg = new FormTextPad(true, csv.ToString()))
+				dlg.ShowDialog(this);
+		}
+
+		private static StringBuilder
+		BackDown(StringBuilder text, string trail)
+		{
+			Debug.Assert( text[text.Length - trail.Length] == trail[0] );
+			return text.Remove(text.Length - trail.Length, trail.Length);
+		}
 	}
 }
