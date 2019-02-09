@@ -5,10 +5,11 @@ namespace JP.InvestCalc
 {
 	internal partial class FormTextPad :Form
 	{
-		public FormTextPad(bool readOnly, string content)
+		public FormTextPad(bool readOnly, string headers, string content)
 		{
 			InitializeComponent();
 
+			lblHeaders.Text = headers;
 			txt.ReadOnly = readOnly;
 			txt.Text = content;
 
@@ -16,20 +17,33 @@ namespace JP.InvestCalc
 			{
 				txt.SelectAll();
 				Clipboard.SetText(content);
-				if(showHelp)
+				if(showHelpOutput)
 				{
-					Shown += PromptHelp;
-					showHelp = false;
+					Shown += PromptHelpOutput;
+					showHelpOutput = false;
 				}
+			}
+			else if(showHelpInput)
+			{
+				Shown += PromptHelpInput;
+				showHelpInput = false;
 			}
 		}
 
-		private static bool showHelp = true;
+		private static bool
+			showHelpOutput = true,
+			showHelpInput  = true;
 
-		private void PromptHelp(object sender, EventArgs ea)
+		private void PromptHelpOutput(object sender, EventArgs ea)
 		{
 			MessageBox.Show(this, "Copied to clipboard. You can paste directly into Excel.", Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
-			Shown -= PromptHelp;
+			Shown -= PromptHelpOutput;
+		}
+
+		private void PromptHelpInput(object sender, EventArgs ea)
+		{
+			MessageBox.Show(this, "Enter the CSV into this Window, then close it to continue importing.", Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+			Shown -= PromptHelpInput;
 		}
 	}
 }

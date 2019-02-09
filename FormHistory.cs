@@ -33,7 +33,7 @@ namespace JP.InvestCalc
 
 			mnuDelete.Click += DoDelete;
 			mnuExport.Click += DoExport;
-			mnuImport.Visible = false; //TODO
+			mnuImport.Visible = false;
 
 			colShares.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
 			colFlow  .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
@@ -47,6 +47,16 @@ namespace JP.InvestCalc
 			db.GetHistory(table, portfolio, dateFrom, dateTo);
 			// Keeping this order is needed by IsDeleteAllowable(), in case the user reorders the table by clicking on the column headers.
 			Debug.Assert(rowsOrdered.Length == table.Rows.Count);
+
+
+			/*** Headers for CSV: ***/
+			const string textSeparator = ", "; // not the same used for values
+
+			foreach(DataGridViewColumn col in table.Columns)
+				csv.Append(col.HeaderText).Append(textSeparator);
+
+			BackDown(csv, textSeparator);
+			headers = csv.ToString();
 		}
 
 
@@ -131,17 +141,12 @@ namespace JP.InvestCalc
 		}
 
 
+		private StringBuilder csv = new StringBuilder();
 		private string csvSeparator = Properties.Settings.Default.csvSeparator;
 
 		private void DoExport(object sender, EventArgs ea)
 		{
-			var csv = new StringBuilder();
-
-			foreach(DataGridViewColumn col in table.Columns)
-				csv.Append(col.HeaderText).Append(csvSeparator);
-
-			BackDown(csv, csvSeparator)
-				.AppendLine();
+			csv.Clear();
 
 			foreach(DataGridViewRow row in table.SelectedRows)
 			{
@@ -152,7 +157,7 @@ namespace JP.InvestCalc
 					.AppendLine();
 			}
 
-			using(var dlg = new FormTextPad(true, csv.ToString()))
+			using(var dlg = new FormTextPad(true, headers, csv.ToString()))
 				dlg.ShowDialog(this);
 		}
 
@@ -162,5 +167,7 @@ namespace JP.InvestCalc
 			Debug.Assert( text[text.Length - trail.Length] == trail[0] );
 			return text.Remove(text.Length - trail.Length, trail.Length);
 		}
+
+		private readonly string headers;
 	}
 }
