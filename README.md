@@ -13,8 +13,10 @@ Program to keep track of investments and calculate their returns.
 * Displays the current portfolio
 (currently owned shares of every stock).
 
-* Displays order history.
+* Display and manipulate order history.
 Can filter by dates and stocks.
+
+* Import/export order history from/to CSV.
 
 * Calculates the equivalent yearly return of each investment,
 and all investments together.
@@ -23,11 +25,6 @@ The equivalent yearly return is defined as the interest/discount rate
 that makes the net present value of all cash flows
 equal to the current value
 (current price multiplied by number of shares currently owned).
-
-## Upcoming features
-* Manipulate order history: delete records.
-* Import/export order history from/to CSV.
-* Port as mobile app...
 
 ## Notes
 
