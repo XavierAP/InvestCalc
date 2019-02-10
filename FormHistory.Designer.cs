@@ -95,7 +95,7 @@
 			// 
 			// colPrice
 			// 
-			this.colPrice.HeaderText = "Avg. price";
+			this.colPrice.HeaderText = "Price (info)";
 			this.colPrice.Name = "colPrice";
 			this.colPrice.ReadOnly = true;
 			// 

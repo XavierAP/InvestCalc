@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -102,11 +103,11 @@ from Flows, Stocks ON Flows.stock == Stocks.id
 		/// The same rows are already added into the <see cref="DataGridView"/>,
 		/// with this same initial order.</returns>
 		internal DataGridViewRow[]
-		GetHistory(DataGridView guiTable, string[] stockNames, DateTime dateFrom, DateTime dateTo)
+		GetFlowDetails(DataGridView guiTable, string[] stockNames, DateTime dateFrom, DateTime dateTo)
 		{
 			dateFrom = dateFrom.Date;
 			dateTo   = dateTo  .Date;
-			Debug.Assert(dateFrom <= dateTo && dateFrom.Kind == dateTo.Kind);
+			Debug.Assert(dateFrom <= dateTo);
 
 			var sql = new StringBuilder(@"
 SELECT Flows.rowid, utcDate, name, shares, flow, comment
@@ -178,5 +179,159 @@ from Flows, Stocks ON Flows.stock == Stocks.id
 			connection.Write(sql);
 			Dirty = true;
 		}
+
+
+		/// <summary>Parses CSV text ("comma-separated values," although the separator may be other than the comma)
+		/// and saves the resulting rows into the Flows database table.</summary>
+		/// <returns>Number of rows read; or negative on failure due to bad CSV data or format.</returns>
+		internal int
+		ImportFlows(string csv, string separator)
+		{
+			int n = 0;
+			var records = new Dictionary<string, List<(DateTime Date, double Shares, double Flow, string Comment)>>();
+
+			var seps = new[] { separator };
+			string line;
+			using(var cursor = new StringReader(csv))
+				while(null != (line = cursor.ReadLine()))
+				{
+					if(string.IsNullOrWhiteSpace(line)) continue; // alow and skip empty lines
+
+					var values = line.Split(seps,
+						StringSplitOptions.RemoveEmptyEntries); // allow the user to have entered e.g. several tabs in a row for visual reasons; only the last column (comment) may optionally be empty
+
+					if(values.Length < ImportFlowsMinCols)
+					{
+						MessageBox.Show("Cannot parse columns from line: " + line,
+							Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+						return -1;
+					}
+
+					int i = 0;
+
+					var dateText = values[i].Trim();
+					if(!DateTime.TryParse(dateText, out DateTime date))
+					{
+						ImportFlowsError(dateText, "date");
+						return -1;
+					}
+					Debug.Assert(date.Kind == DateTimeKind.Unspecified); // from TryParse(); considered local
+					date = date.Date.ToUniversalTime();
+
+					string stock = values[++i].Trim();
+
+					var sharesText = values[++i].Trim();
+					if(!double.TryParse(sharesText, out double shares))
+					{
+						ImportFlowsError(sharesText, "number");
+						return -1;
+					}
+
+					var flowText = values[++i].Trim();
+					if(!double.TryParse(flowText, out double flow))
+					{
+						ImportFlowsError(flowText, "number");
+						return -1;
+					}
+					
+					var comment = values.Length > ++i ? // comments are optional
+						values[i].Trim() : null;
+
+					if(!records.TryGetValue(stock, out var stockRecords))
+						records.Add(stock,
+						stockRecords = new List<(DateTime Date, double Shares, double Flow, string Comment)>(csv.Length / 20 - n)
+						);
+					stockRecords.Add((date, shares, flow, comment));
+
+					++n;
+				}
+
+			// Order operations chronologically:
+			foreach(var rec in records.Values)
+				rec.Sort(ImportFlowsSort); // ORDER by utcDate, shares DESC
+
+			// Container for SQL statements:
+			var sql = new List<string>(n + records.Count); // Capacity: number of Flows to import plus 1 for each Stock INSERT or IGNORE
+
+			/* We must now check that the records are not absurd
+			i.e. that at no time more shares are sold than owned.
+			Step 1.- Learn how many were owned before the first operation to be imported:
+			*/
+			foreach(var stockRecords in records)
+			{
+				double sharesOwned;
+				string stockName = stockRecords.Key;
+				using(var query = connection.Select($@"
+SELECT total(Flows.shares) as shares
+from Stocks left join Flows
+on Flows.stock == Stocks.id
+where name == '{stockName}'
+and utcDate <= {stockRecords.Value[0].Date.Ticks}
+group by Stocks.id"))
+				{
+					if(query.Rows.Count > 0)
+					{
+						Debug.Assert(1 == query.Rows.Count);
+						sharesOwned = (double)query.Rows[0][0];
+					}
+					else
+						sharesOwned = 0;
+				}
+				sql.Add($"INSERT or IGNORE into Stocks(name) values('{stockName}')");
+
+				// 2.- Check every record:
+				Debug.Assert(sharesOwned >= 0);
+				foreach(var rec in stockRecords.Value)
+				{
+					if(-rec.Shares > sharesOwned)
+					{
+						MessageBox.Show(
+$@"Cannot sell more shares than you own! Imported record
+of {stockName} on {rec.Date.ToLocalTime().ToShortDateString()}
+selling {-rec.Shares} while owning only {sharesOwned} at the time .", Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+
+						return -2;
+					}
+					sharesOwned += rec.Shares;
+					Debug.Assert(sharesOwned >= 0);
+
+					// 3.- Add it to the commit:
+					sql.Add($@"
+INSERT into Flows values (
+{rec.Date.Ticks},
+(select id from Stocks where name = '{stockName}'),
+{rec.Shares}, {rec.Flow},
+{(string.IsNullOrWhiteSpace(rec.Comment) ? "NULL" : $"'{rec.Comment}'")}
+)");
+				}
+			}
+
+			// All Korrect, finally! write to the database:
+			connection.Write(sql);
+			return n;
+		}
+
+		public const int ImportFlowsMinCols = 4;
+
+		private static int
+		ImportFlowsSort((DateTime Date, double Shares, double Flow, string Comment) a,
+			(DateTime Date, double Shares, double Flow, string Comment) b)
+		{
+			if(a.Date < b.Date)
+				return -1;
+			else if(a.Date > b.Date)
+				return 1;
+			else if(a.Shares > b.Shares)
+				return -1;
+			else if(a.Shares < b.Shares)
+				return 1;
+			else
+				return 0;
+		}
+
+		private static void
+		ImportFlowsError(string text, string parseType) => MessageBox.Show(
+			$"Cannot parse as {parseType}:\n{text}",
+			Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 	}
 }

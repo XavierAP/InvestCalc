@@ -33,10 +33,10 @@ namespace JP.InvestCalc
 
 			mnuDelete.Click += DoDelete;
 			mnuExport.Click += DoExport;
-			mnuImport.Visible = false;
+			mnuImport.Click += DoImport;
 
-			colShares.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-			colFlow  .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+			colShares.DefaultCellStyle.Alignment =
+			colFlow  .DefaultCellStyle.Alignment =
 			colPrice .DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
 
 			colFlow.DefaultCellStyle.Format =
@@ -44,20 +44,21 @@ namespace JP.InvestCalc
 				"C" + FormMain.precisionMoney;
 
 			rowsOrdered =
-			db.GetHistory(table, portfolio, dateFrom, dateTo);
+			db.GetFlowDetails(table, portfolio, dateFrom, dateTo);
 			// Keeping this order is needed by IsDeleteAllowable(), in case the user reorders the table by clicking on the column headers.
 			Debug.Assert(rowsOrdered.Length == table.Rows.Count);
 
-
-			/*** Headers for CSV: ***/
-			const string textSeparator = ", "; // not the same used for values
-
-			foreach(DataGridViewColumn col in table.Columns)
-				csv.Append(col.HeaderText).Append(textSeparator);
-
-			BackDown(csv, textSeparator);
-			headers = csv.ToString();
+			headers = (
+				from c in DataColumns
+				select table.Columns[c].HeaderText
+				).ToArray();
 		}
+
+
+		private IEnumerable<int> DataColumns =>
+			from DataGridViewColumn col in table.Columns
+			where col != colPrice // the avg price is derived data for info
+			select col.Index;
 
 
 		private void Table_MouseDown(object sender, MouseEventArgs ea)
@@ -148,10 +149,12 @@ namespace JP.InvestCalc
 		{
 			csv.Clear();
 
-			foreach(DataGridViewRow row in table.SelectedRows)
+			foreach(DataGridViewRow row in table.Rows) // iterate all .Rows to preserve display order; .SelectedRows may have a different order
 			{
-				foreach(DataGridViewCell cell in row.Cells)
-					csv.Append(cell.Value).Append(csvSeparator);
+				if(!row.Selected) continue;
+
+				foreach(var c in DataColumns)
+					csv.Append(row.Cells[c].Value).Append(csvSeparator);
 
 				BackDown(csv, csvSeparator)
 					.AppendLine();
@@ -161,6 +164,24 @@ namespace JP.InvestCalc
 				dlg.ShowDialog(this);
 		}
 
+		private void DoImport(object sender, EventArgs ea)
+		{
+			using(var dlg = new FormTextPad(false, headers, null))
+			{
+				int n;
+				do {
+					dlg.ShowDialog(this);
+					if(dlg.DialogResult == DialogResult.Cancel)
+						return;
+
+					n = db.ImportFlows(dlg.Content, csvSeparator);
+				}
+				while(n <= 0);
+				Close(); // the displayed data are no longer up to date after importing
+			}
+		}
+
+
 		private static StringBuilder
 		BackDown(StringBuilder text, string trail)
 		{
@@ -168,6 +189,6 @@ namespace JP.InvestCalc
 			return text.Remove(text.Length - trail.Length, trail.Length);
 		}
 
-		private readonly string headers;
+		private readonly string[] headers;
 	}
 }

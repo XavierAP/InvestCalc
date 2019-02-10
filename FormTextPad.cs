@@ -1,17 +1,26 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows.Forms;
 
 namespace JP.InvestCalc
 {
 	internal partial class FormTextPad :Form
 	{
-		public FormTextPad(bool readOnly, string headers, string content)
+		public string Content => txt.Text;
+
+		private readonly string[] headers;
+
+		public FormTextPad(bool readOnly, string[] headers, string content)
 		{
 			InitializeComponent();
 
-			lblHeaders.Text = headers;
+			Debug.Assert(headers.Length == Data.ImportFlowsMinCols + 1); // no price (derived) and comment is optional
+			this.headers = headers;
+			const string textSeparator = ", "; // not the same used for values
+			lblHeaders.Text = string.Join(textSeparator, headers);
 			txt.ReadOnly = readOnly;
-			txt.Text = content;
+			if(content != null)
+				txt.Text = content;
 
 			if(readOnly)
 			{
@@ -23,12 +32,17 @@ namespace JP.InvestCalc
 					showHelpOutput = false;
 				}
 			}
-			else if(showHelpInput)
+			else
 			{
-				Shown += PromptHelpInput;
-				showHelpInput = false;
+				FormClosing += ConfirmImport;
+				if(showHelpInput)
+				{
+					Shown += PromptHelpInput;
+					showHelpInput = false;
+				}
 			}
 		}
+
 
 		private static bool
 			showHelpOutput = true,
@@ -36,14 +50,39 @@ namespace JP.InvestCalc
 
 		private void PromptHelpOutput(object sender, EventArgs ea)
 		{
-			MessageBox.Show(this, "Copied to clipboard. You can paste directly into Excel.", Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+			MessageBox.Show(this, "CSV copied automatically into the system clipboard. You can paste directly into Excel.", Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
 			Shown -= PromptHelpOutput;
 		}
 
 		private void PromptHelpInput(object sender, EventArgs ea)
 		{
-			MessageBox.Show(this, "Enter the CSV into this Window, then close it to continue importing.", Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+			MessageBox.Show(this, $@"Enter the CSV into this Window, then close it to continue importing.
+Enter values for the {headers.Length} columns enumerated above; do not include price; comments are optional.
+Use separator
+«{Properties.Settings.Default.csvSeparator}»
+(or change this separator in the .config file and restart the app).", Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+
 			Shown -= PromptHelpInput;
+		}
+
+
+		private void ConfirmImport(object sender, FormClosingEventArgs ea)
+		{
+			if(string.IsNullOrWhiteSpace(Content))
+			{
+				DialogResult = DialogResult.Cancel;
+				return;
+			}
+
+			var ans = MessageBox.Show(this, "Do you want to parse and import these data as CSV?", "Please confirm",
+				MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
+
+			if(ans == DialogResult.Cancel)
+				ea.Cancel = true;
+			if(ans == DialogResult.No)
+				DialogResult = DialogResult.Cancel;
+			else
+				DialogResult = DialogResult.OK;
 		}
 	}
 }
