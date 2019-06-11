@@ -308,6 +308,7 @@ INSERT into Flows values (
 
 			// All Korrect, finally! write to the database:
 			connection.Write(sql);
+			Dirty = true;
 			return n;
 		}
 
