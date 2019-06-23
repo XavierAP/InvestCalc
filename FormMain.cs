@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -49,6 +50,8 @@ namespace JP.InvestCalc
 			mnuHistory.Click += OpsHistory;
 
 			table.CellValidating += ValidatingInput;
+			table.SelectionChanged += SelectionChanged;
+			SelectionChanged(null, null);
 		}
 
 
@@ -230,12 +233,20 @@ namespace JP.InvestCalc
 
 			TryCalcReturnAvg(today); // try to calculate the global average return
 		}
-		
-		private void TryCalcReturnAvg(DateTime today)
+
+		/// <summary>Calculates the average return of several stocks
+		/// if their values are known.</summary>
+		/// <param name="today">Presemt date.</param>
+		/// <param name="selected">Selected stocks (rows).</param>
+		private void TryCalcReturnAvg(DateTime today, bool selected = false)
 		{
+			var rows = selected ? (IList)table.SelectedRows : (IList)table.Rows;
+			var stocks = new string[rows.Count];
+			int i = 0;
+
 			// In order to calculate the total average return, I need values for all stocks:
 			double total = 0;
-			foreach(DataGridViewRow row in table.Rows)
+			foreach(DataGridViewRow row in rows)
 			{
 				object content = GetCell(row, colValue).Value;
 				if(content == null) return;
@@ -243,13 +254,32 @@ namespace JP.InvestCalc
 				Debug.Assert(!(double.IsNaN(value) || double.IsInfinity(value)));
 
 				total += value;
+				stocks[i++] = (string)GetCell(row, colStock).Value;
 			}
+			Debug.Assert(i == rows.Count);
 
-			txtTotal.Text = total.ToString("C" + precisionMoney);
+			TextBox
+				txtValue  = selected ? txtValueSelected : txtValueTotal,
+				txtReturn = selected ? txtReturnSelected : txtReturnAvg;
 
-			txtReturnAvg.Text = Money.SolveRateInvest(
-				db.GetFlows(), (total, today), precisionPer1, seedRate
+			txtValue.Text = total.ToString("C" + precisionMoney);
+
+			txtReturn.Text = Money.SolveRateInvest(
+				db.GetFlows(stocks), (total, today), precisionPer1, seedRate
 				).ToString(colReturn.DefaultCellStyle.Format);
+		}
+
+
+		private void SelectionChanged(object sender, EventArgs ea)
+		{
+			bool multi = table.SelectedRows.Count > 1;
+
+			txtValueSelected.Visible =
+			lblValueSelected.Visible =
+			txtReturnSelected.Visible =
+			lblReturnSelected.Visible = multi;
+
+			if(multi) TryCalcReturnAvg(UpdateDate(), true);
 		}
 
 
