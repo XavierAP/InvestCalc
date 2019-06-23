@@ -41,6 +41,7 @@ namespace JP.InvestCalc
 
 			KeyPreview = true;
 			KeyDown += Form_KeyDown;
+			Shown += (e,a) => btnOK.Focus(); // listStocks interferes with keyboard handling when it's in focus
 
 			// Arbitrary "from", but make both same kind (local):
 			pickDateFrom.Value = new DateTime(2000, 1, 1, 0,0,0, DateTimeKind.Local);
