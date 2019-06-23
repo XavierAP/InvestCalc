@@ -6,11 +6,22 @@ using System.Windows.Forms;
 
 namespace JP.InvestCalc
 {
+	/// <summary>Dialog for the user to select for what stocks
+	/// and in what times they want to browse past operations.</summary>
 	internal partial class FormHistoryFilter :Form
 	{
 		private readonly Data db;
 
-		public FormHistoryFilter(Data db, IEnumerable<string> portfolio)
+		/// <summary>Constructor.</summary>
+		/// <param name="db">Database.</param>
+		/// <param name="portfolio">Complete list of stocks.</param>
+		/// <param name="selected">Which stocks were selected by the user
+		/// in the parent window, to preseve the same selection here.
+		/// If this is null, nothing to preserve
+		/// and all will be selected by default.</param>
+		public FormHistoryFilter(Data db,
+			IEnumerable<string> portfolio,
+			IEnumerable<bool> selected )
 		{
 			Debug.Assert(db != null);
 			this.db = db;
@@ -18,9 +29,15 @@ namespace JP.InvestCalc
 			InitializeComponent();
 			
 			listStocks.Items.AddRange(portfolio.ToArray());
-			pickDateFrom.Value = pickDateFrom.MinDate;
+			if(selected == null) SelectAll();
+			else
+			{
+				int i = 0;
+				foreach(bool select in selected.Take(listStocks.Items.Count))
+					listStocks.SetSelected(i++, select);
+			}
 
-			SelectAll();
+			pickDateFrom.Value = pickDateFrom.MinDate;
 
 			KeyPreview = true;
 			KeyDown += Form_KeyDown;

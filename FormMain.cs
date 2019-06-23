@@ -162,7 +162,23 @@ namespace JP.InvestCalc
 		/// <summary>Lets the user browse past operations.</summary>
 		private void OpsHistory(object sender, EventArgs ea)
 		{
-			using(var dlg = new FormHistoryFilter(db, stocks.Keys))
+			int n = table.Rows.Count;
+			var selected = new bool[n];
+			var stockNames = new string[n];
+			int multi = 0;
+			int i = 0;
+			foreach(DataGridViewRow row in table.Rows)
+			{
+				stockNames[i] = (string)GetCell(i, colStock).Value;
+
+				if(selected[i] = row.Selected)
+					++multi;
+
+				++i;
+			}
+
+			Debug.Assert(i == n && stockNames.Length == stocks.Count);
+			using(var dlg = new FormHistoryFilter(db, stockNames, multi>1?selected:null))
 				dlg.ShowDialog(this);
 
 			if(db.Dirty) FillTable();
