@@ -49,5 +49,14 @@ namespace JP.InvestCalc.Properties {
                 return ((string)(this["csvSeparator"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string apiLicense {
+            get {
+                return ((string)(this["apiLicense"]));
+            }
+        }
     }
 }

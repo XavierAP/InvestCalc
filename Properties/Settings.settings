@@ -11,5 +11,8 @@
     <Setting Name="csvSeparator" Type="System.String" Scope="Application">
       <Value Profile="(Default)">	</Value>
     </Setting>
+    <Setting Name="apiLicense" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>
