@@ -62,10 +62,7 @@ namespace JP.InvestCalc
 			string code = words[1].Trim();
 			switch(words[0].Trim().ToLower())
 			{
-				case "alphavantage":
-				case "av":
-					return new QuoteAlphaVantage(code);
-				
+				case "alphavantage": return new QuoteAlphaVantage(code);
 				default: return null;
 			}
 		}

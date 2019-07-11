@@ -11,7 +11,7 @@ namespace JP.InvestCalc
 		public async Task TestAlphaVantage()
 		{
 			const string
-				provider = "AV",
+				provider = "AlphaVantage",
 				code = "ASML.AMS";
 
 			var qt = Quote.Prepare($"{provider} {code}");
