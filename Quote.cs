@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace JP.InvestCalc
 {
@@ -21,9 +22,9 @@ namespace JP.InvestCalc
 			{
 				var response = await new HttpClient().GetAsync(Url);
 				response.EnsureSuccessStatusCode();
-				var html = await response.Content.ReadAsStringAsync();
+				var data = await response.Content.ReadAsStringAsync();
 
-				return ParsePrice(html); // may throw
+				return ParsePrice(data); // may throw
 			}
 			catch(Exception err)
 			{
@@ -39,7 +40,7 @@ namespace JP.InvestCalc
 		protected const double ErrorPrice = double.NaN;
 
 		protected abstract string Url { get; }
-		protected abstract double ParsePrice(string html);
+		protected abstract double ParsePrice(string data);
 
 		/// <summary>Factory method.</summary>
 		/// <param name="provider_code">Two "words" separated by a space.
@@ -57,10 +58,11 @@ namespace JP.InvestCalc
 
 			if(words.Length < n || words.Take(n).Any(c => string.IsNullOrWhiteSpace(c)))
 				return null;
-			
-			switch(words[0].ToLower())
+
+			string code = words[1].Trim();
+			switch(words[0].Trim().ToLower())
 			{
-				case "bloomberg": return new QuoteBloomberg(words[1]);
+				case "alphavantage": return new QuoteAlphaVantage(code);
 				default: return null;
 			}
 		}
@@ -76,28 +78,59 @@ namespace JP.InvestCalc
 		}
 	}
 
-	/// <summary><see cref="Quote"/> acquired from Bloomberg.com</summary>
-	public class QuoteBloomberg : Quote
+	/// <summary><see cref="Quote"/> acquired from AlphaVantage.co</summary>
+	public class QuoteAlphaVantage : Quote
 	{
 		/// <summary>Constructor</summary>
 		/// <param name="code">Stock identifier.</param>
-		public QuoteBloomberg(string code) : base(code) { }
-
-		protected override string Url => "https://www.bloomberg.com/quote/" + Code;
-
-		protected override double ParsePrice(string html)
+		public QuoteAlphaVantage(string code) : base(code)
 		{
-			// Easier than regex for this simple case... :)
-			//     Whenever html is not correct (IndexOf returns -1)
-			// an exception will be automatically thrown from a subsequent call, to IndexOf or Substring.
-			var pos0 = html.IndexOf("<span class=\"priceText"); // outer HTML element containing the price
-			pos0 = html.IndexOf('>', pos0); // start of inner content (price)
-			++pos0; // step over the '>' into the content
-			var pos1 = html.IndexOf('<', pos0); // end of inner content (price)
-			Debug.Assert(pos1 == html.IndexOf("</span>", pos0)); // longer version of the same, if html is well formed
-
-			// This may also throw if html did not contain a numeric price:
-			return double.Parse(html.Substring(pos0, pos1 - pos0));
+			LicenseKey = Properties.Settings.Default.apiLicense;
+			if(string.IsNullOrWhiteSpace(LicenseKey))
+				throw new Exception("API key required from AlphaVantage.co.");
 		}
+
+		private readonly string LicenseKey;
+
+		/// <summary>CSV retrieved from the web API
+		/// after <see cref="Quote.LoadPrice"/> has been called
+		/// -- null beforehand.</summary>
+		public string DataCSV { get; private set; }
+
+		protected override string Url => $"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={Code}&apikey={LicenseKey}&datatype=csv";
+
+		protected override double ParsePrice(string data)
+		{
+			DataCSV = data;
+
+			var cross_pairs = data.Split(separatorLine, StringSplitOptions.RemoveEmptyEntries)
+				.Select(lin => lin.Split(separatorCSV, StringSplitOptions.None))
+				.ToArray();
+
+			if(cross_pairs.Length != 2) throw new IOException(
+				"Alpha Vantage web API bad CSV format:\n" +
+				"expected two lines, headers and values.");
+
+			string[]
+				tags = cross_pairs[0],
+				vals = cross_pairs[1];
+
+			Debug.Assert(tags.Length == vals.Length, "Web API error");
+			Debug.Assert(
+				0 == string.Compare("symbol", tags[0], false) &&
+				0 == string.Compare( Code   , vals[0], true ) ,
+				"Alpha Vantage web API warning.");
+
+			const string tagPrice = "price";
+			var pos = Array.IndexOf(tags, tagPrice);
+			if(pos < 0 || pos >= vals.Length) throw new IOException(
+				"Alpha Vantage web API bad CSV format:\n" +
+				$"cannot find value under header {tagPrice}.");
+
+			return double.Parse(vals[pos]);
+		}
+		private readonly static char[]
+			separatorLine = "\r\n".ToCharArray(),
+			separatorCSV  = ",".ToCharArray();
 	}
 }

@@ -8,19 +8,20 @@ namespace JP.InvestCalc
 	public class UnitTestQuotes
 	{
 		[TestMethod]
-		public async Task TestBloomberg()
+		public async Task TestAlphaVantage()
 		{
 			const string
-				provider = "Bloomberg",
-				code = "ASML:NA";
+				provider = "AlphaVantage",
+				code = "ASML.AMS";
 
-			var qt = Quote.Prepare($"{provider} {code} blah gargabe");
+			var qt = Quote.Prepare($"{provider} {code}");
 			Assert.AreEqual(code, qt.Code);
 
 			double price = await qt.LoadPrice();
+			Assert.IsFalse(double.IsNaN(price) || double.IsInfinity(price) || price <= 0);
 
-			qt = new QuoteBloomberg(code);
-			Assert.AreEqual(price, await qt.LoadPrice());
+			double priceBis = await new QuoteAlphaVantage(code).LoadPrice();
+			Assert.AreEqual(price, priceBis);
 		}
 	}
 }
