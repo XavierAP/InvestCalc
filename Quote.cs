@@ -11,6 +11,13 @@ namespace JP.InvestCalc
 	/// consulted asynchronously.</summary>
 	public abstract class Quote
 	{
+		/// <summary>Each value maps to an implementation of <see cref="Quote"/>
+		/// and can be passed to <see cref="Quote.Prepare(Provider, string)"/>.</summary>
+		public enum Provider
+		{
+			AlphaVantage
+		}
+
 		/// <summary>Stock identifier.</summary>
 		public string Code { get; private set; }
 
@@ -43,9 +50,28 @@ namespace JP.InvestCalc
 		protected abstract double ParsePrice(string data);
 
 		/// <summary>Factory method.</summary>
+		/// <param name="api">Website/API where the quote will be got from,
+		/// which maps to <see cref="Provider"/>, e.g. "AlphaVantage".</param>
+		/// <param name="code">code of the stock on this website, e.g. "ASML.AMS"</param>
+		/// <returns>Null if code is invalid.
+		/// Otherwise object that provides the quote from the appropriate website.</returns>
+		public static Quote Prepare(Provider api, string code)
+		{
+			if(string.IsNullOrWhiteSpace(code)) return null;
+
+			switch(api)
+			{
+				case Provider.AlphaVantage:
+					return new QuoteAlphaVantage(code);
+				
+				default: return null;
+			}
+		}
+
+		/// <summary>Factory method.</summary>
 		/// <param name="provider_code">Two "words" separated by a space.
-		/// The first determines the website where the quote will be got from, e.g. "bloomberg".
-		/// The second word is the code of the stock on this website, e.g. "ASML:NA".
+		/// The first determines the website where the quote will be got from, e.g. "AlphaVantage".
+		/// The second word is the code of the stock on this website, e.g. "ASML.AMS".
 		/// Must not be null or will throw.</param>
 		/// <returns>Null if code is invalid.
 		/// Otherwise object that provides the quote from the appropriate website.</returns>
@@ -59,12 +85,15 @@ namespace JP.InvestCalc
 			if(words.Length < n || words.Take(n).Any(c => string.IsNullOrWhiteSpace(c)))
 				return null;
 
+			string apiName = words[0].Trim();
 			string code = words[1].Trim();
-			switch(words[0].Trim().ToLower())
-			{
-				case "alphavantage": return new QuoteAlphaVantage(code);
-				default: return null;
-			}
+
+			foreach(Provider api in Enum.GetValues(typeof(Provider)))
+				if(0 == string.Compare(apiName, api.ToString(), true))
+					return Prepare(api, code);
+			
+			// else:
+			return null;
 		}
 		private readonly static char[] separator =
 			" \t\r\n".ToCharArray();

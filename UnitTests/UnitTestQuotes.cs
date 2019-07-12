@@ -10,17 +10,18 @@ namespace JP.InvestCalc
 		[TestMethod]
 		public async Task TestAlphaVantage()
 		{
-			const string
-				provider = "AlphaVantage",
-				code = "ASML.AMS";
+			const Quote.Provider api = Quote.Provider.AlphaVantage;
+			const string code = "ASML.AMS";
 
-			var qt = Quote.Prepare($"{provider} {code}");
+			var qt = Quote.Prepare(api, code);
+			Assert.IsInstanceOfType(qt, typeof(QuoteAlphaVantage));
 			Assert.AreEqual(code, qt.Code);
 
 			double price = await qt.LoadPrice();
 			Assert.IsFalse(double.IsNaN(price) || double.IsInfinity(price) || price <= 0);
 
-			double priceBis = await new QuoteAlphaVantage(code).LoadPrice();
+			qt = Quote.Prepare($"{api} {code}");
+			double priceBis = await qt.LoadPrice();
 			Assert.AreEqual(price, priceBis);
 		}
 	}
