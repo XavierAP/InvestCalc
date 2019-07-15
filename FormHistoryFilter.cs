@@ -94,6 +94,8 @@ namespace JP.InvestCalc
 
 			using(var dlg = new FormHistory(db, stocks, pickDateFrom.Value, pickDateTo.Value))
 				dlg.ShowDialog(this);
+
+			if(db.Dirty) Close(); // may have added new stocks etc.
 		}
 	}
 }
