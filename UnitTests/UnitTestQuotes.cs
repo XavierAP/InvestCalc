@@ -20,7 +20,7 @@ namespace JP.InvestCalc
 			double price = await qt.LoadPrice();
 			Assert.IsFalse(double.IsNaN(price) || double.IsInfinity(price) || price <= 0);
 
-			qt = Quote.Prepare($"{api} {code}");
+			qt = Quote.Prepare("AV " + code);
 			double priceBis = await qt.LoadPrice();
 			Assert.AreEqual(price, priceBis);
 		}

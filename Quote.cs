@@ -86,6 +86,7 @@ namespace JP.InvestCalc
 				return null;
 
 			string apiName = words[0].Trim();
+			apiName = ExpandAbbreviation(apiName);
 			string code = words[1].Trim();
 
 			foreach(Provider api in Enum.GetValues(typeof(Provider)))
@@ -95,6 +96,17 @@ namespace JP.InvestCalc
 			// else:
 			return null;
 		}
+
+		private static string ExpandAbbreviation(string abbr)
+		{
+			switch(abbr.ToUpper())
+			{
+				case "AV": return Provider.AlphaVantage.ToString();
+
+				default: return abbr;
+			}
+		}
+
 		private readonly static char[] separator =
 			" \t\r\n".ToCharArray();
 
