@@ -21,8 +21,8 @@ namespace JP.InvestCalc
 
 		private sealed class Stock // I want a tuple type by reference with named members; these aren't built into the language (System.Tuple's members are unnamed) like the ones by value are since C# 7.0.
 		{
+			public string Name;
 			public double Shares;
-			public int IndexGUI;
 		}
 		private readonly SortedDictionary<string, Stock>
 			stocks  = new SortedDictionary<string, Stock>(StringComparer.CurrentCultureIgnoreCase);
@@ -90,8 +90,9 @@ namespace JP.InvestCalc
 				if(prices.ContainsKey(name))
 				{
 					var price = (string)prices[name];
-					GetCell(stk.IndexGUI, colPrice).Value = price;
-					ProcessInput(price, stk.IndexGUI);
+					var irow = GetRow(name);
+					GetCell(irow, colPrice).Value = price;
+					ProcessInput(price, irow);
 				}
 			}
 
@@ -117,7 +118,7 @@ namespace JP.InvestCalc
 			var i =
 			table.Rows.Add(name, shares);
 
-			var stk = new Stock { IndexGUI = i, Shares = shares };
+			var stk = new Stock { Name = name, Shares = shares };
 			stocks.Add(name, stk);
 
 			if(shares == 0) // can calculate, value is known regardless of price
@@ -144,7 +145,7 @@ namespace JP.InvestCalc
 					var stk = stocks[dlg.StockName];
 					stk.Shares += dlg.Shares;
 					// Update GUI:
-					var irow = stk.IndexGUI;
+					var irow = GetRow(dlg.StockName);
 					GetCell(irow, colShares).Value = stk.Shares;
 
 					db.OpRecord(false, dlg.StockName, dlg.Date, dlg.Shares, dlg.Total, dlg.Comment);
@@ -306,5 +307,18 @@ namespace JP.InvestCalc
 		private static DataGridViewCell
 		GetCell(DataGridViewRow row, DataGridViewColumn col)
 			=> row.Cells[col.Index];
+
+		/// <summary>There must be one and only one.</summary>
+		private int
+		GetRow(string stockName)
+		{
+			var ids =
+				from DataGridViewRow row in table.Rows
+				where stockName == (string)GetCell(row, colStock).Value
+				select row.Index;
+
+			Debug.Assert(1 == ids.Count());
+			return ids.First();
+		}
 	}
 }
