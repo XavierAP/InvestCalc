@@ -36,15 +36,30 @@ on Flows.stock == Stocks.id
 group by Stocks.id
 order by name"))
 			{
-				Debug.Assert(
-					"name"   == table.Columns[0].ColumnName.ToLower() &&
-					"shares" == table.Columns[1].ColumnName.ToLower() );
-
 				foreach(DataRow record in table.Rows)
 					yield return ( (string)record[0], (double)record[1] );
 			}
 
 			Dirty = false;
+		}
+
+
+		/// <summary>Returns defined (excluding NULL) fetch codes.</summary>
+		/// <param name="stockNames">Limited to these stocks.
+		/// If null, for all stocks.</param>
+		public IEnumerable<(string StockName, string Code)>
+		GetFetchCodes(IEnumerable<string> stockNames)
+		{
+			using(var table = connection.Select($@"
+SELECT name, fetchCodes
+from Stocks
+where {(stockNames==null ? null :
+	$"name in ('{string.Join("', '", stockNames)}') and ")}
+fetchCodes is not NULL"))
+			{
+				foreach(DataRow record in table.Rows)
+					yield return ((string)record[0], (string)record[1]);
+			}
 		}
 
 

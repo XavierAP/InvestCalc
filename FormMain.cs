@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using JP.Maths;
@@ -77,6 +78,9 @@ namespace JP.InvestCalc
 				select ( Name: (string)GetCell(row, colStock).Value, Price: value )
 				).ToDictionary( stk=>stk.Name, stk=>stk.Price );
 
+			// The rest may be later looked up from web service(s) if so available:
+			var fetchNames = new List<string>(stocks.Count - prices.Count);
+
 			table.Rows.Clear();
 			stocks.Clear();
 
@@ -94,12 +98,20 @@ namespace JP.InvestCalc
 					GetCell(irow, colPrice).Value = price;
 					ProcessInput(price, irow);
 				}
+				else
+					fetchNames.Add(name);
 			}
 
 			table.ResumeLayout();
 			
 			if(!Visible && stocks.Count == 0) // program startup with empty portfolio
 				Shown += PromptHelp;
+
+			// Fetch prices from web service(s) if available:
+			if(Visible) // prevent race condition at startup
+				TryFetchPrices(fetchNames);
+			else
+				Shown += (o,e) => TryFetchPrices(fetchNames);
 		}
 
 		private void PromptHelp(object sender, EventArgs ea)
@@ -235,8 +247,10 @@ namespace JP.InvestCalc
 				Debug.Assert(table.Columns[ea.ColumnIndex].ReadOnly);
 				return; // nothing to do.
 			}
-
-			ea.Cancel = !ProcessInput((string)ea.FormattedValue, ea.RowIndex);
+			var value = (string)ea.FormattedValue;
+			bool ok = ProcessInput(value, ea.RowIndex);
+			ea.Cancel = !ok;
+			if(ok) table[ea.ColumnIndex, ea.RowIndex].ToolTipText = null; // clear possible error messages from previous input
 		}
 
 
@@ -297,6 +311,64 @@ namespace JP.InvestCalc
 			lblReturnSelected.Visible = multi;
 
 			if(multi) TryCalcReturnAvg(UpdateDate(), true);
+		}
+
+
+		private async void
+		TryFetchPrices(List<string> fetchNames)
+		{
+			if(!retrieving.IsCompleted) return;
+
+			retrieving = FetchPrices(fetchNames); ;
+			await retrieving;
+		}
+
+		private Task retrieving = Task.CompletedTask;
+
+		private async Task
+		FetchPrices(List<string> fetchNames)
+		{
+			var fetchJobs = (
+				from stock_code in db.GetFetchCodes(fetchNames)
+				select FetchPrice(stock_code)
+				).ToList();
+
+			while(fetchJobs.Any())
+			{
+				var done = await Task.WhenAny(fetchJobs);
+				Debug.Assert(!done.IsFaulted);
+				var fetched = done.Result;
+
+				Invoke(new Action( () =>
+				{
+					var irow = GetRow(fetched.StockName);
+					var cell = GetCell(irow, colPrice);
+
+					cell.Value = fetched.Price;
+
+					if(fetched.Error == null)
+					{
+						cell.ToolTipText = null;
+						CalcReturn(fetched.StockName, irow, fetched.Price * stocks[fetched.StockName].Shares);
+					}
+					else
+						cell.ToolTipText = fetched.Error.Message;
+				} ));
+
+				fetchJobs.Remove(done);
+			}
+		}
+
+		private async Task<(string StockName, double Price, Exception Error)>
+		FetchPrice((string Name, string Code) stock)
+		{
+			var qt = Quote.Prepare(stock.Code);
+			if(qt == null)
+				return (stock.Name, double.NaN, new Exception(
+					$"Invalid fetch code \"{stock.Code}\"."));
+			
+			double price = await qt.LoadPrice();
+			return (stock.Name, price, qt.Error);
 		}
 
 

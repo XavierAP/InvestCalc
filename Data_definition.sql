@@ -21,3 +21,6 @@ create index idxFlow2Stock
 on Flows(stock);
 create index idxFlowDate
 on Flows(utcDate);
+
+alter table Stocks add
+	fetchCodes text;
