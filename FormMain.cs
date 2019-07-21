@@ -253,7 +253,7 @@ namespace JP.InvestCalc
 
 		/// <summary>Calculates the average return of several stocks
 		/// if their values are known.</summary>
-		/// <param name="today">Presemt date.</param>
+		/// <param name="today">Present date.</param>
 		/// <param name="selected">Selected stocks (rows).</param>
 		private void TryCalcReturnAvg(DateTime today, bool selected = false)
 		{
