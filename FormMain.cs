@@ -103,15 +103,15 @@ namespace JP.InvestCalc
 			}
 
 			table.ResumeLayout();
-			
-			if(!Visible && stocks.Count == 0) // program startup with empty portfolio
-				Shown += PromptHelp;
 
 			// Fetch prices from web service(s) if available:
 			if(Visible) // prevent race condition at startup
 				TryFetchPrices(fetchNames);
 			else
 				Shown += (o,e) => TryFetchPrices(fetchNames);
+			
+			if(!Visible && stocks.Count == 0) // program startup with empty portfolio
+				Shown += PromptHelp;
 		}
 
 		private void PromptHelp(object sender, EventArgs ea)
