@@ -349,7 +349,9 @@ namespace JP.InvestCalc
 					if(fetched.Error == null)
 					{
 						cell.ToolTipText = null;
-						CalcReturn(fetched.StockName, irow, fetched.Price * stocks[fetched.StockName].Shares);
+						double value = fetched.Price * stocks[fetched.StockName].Shares;
+						GetCell(irow, colValue).Value = value;
+						CalcReturn(fetched.StockName, irow, value);
 					}
 					else
 						cell.ToolTipText = fetched.Error.Message;
