@@ -275,23 +275,26 @@ namespace JP.InvestCalc
 			var stocks = new string[rows.Count];
 			int i = 0;
 
+			TextBox
+				txtValue  = selected ? txtValueSelected : txtValueTotal,
+				txtReturn = selected ? txtReturnSelected : txtReturnAvg;
+
 			// In order to calculate the total average return, I need values for all stocks:
 			double total = 0;
 			foreach(DataGridViewRow row in rows)
 			{
 				object content = GetCell(row, colValue).Value;
-				if(content == null) return;
+				if(content == null)
+				{
+					txtValue.Text = txtReturn.Text = null;
+					return;
+				}
 				var value = (double)content;
 				Debug.Assert(!(double.IsNaN(value) || double.IsInfinity(value)));
 
 				total += value;
 				stocks[i++] = (string)GetCell(row, colStock).Value;
 			}
-			Debug.Assert(i == rows.Count);
-
-			TextBox
-				txtValue  = selected ? txtValueSelected : txtValueTotal,
-				txtReturn = selected ? txtReturnSelected : txtReturnAvg;
 
 			txtValue.Text = total.ToString("C" + precisionMoney);
 
