@@ -322,7 +322,7 @@ namespace JP.InvestCalc
 		{
 			if(!retrieving.IsCompleted) return;
 
-			retrieving = FetchPrices(fetchNames); ;
+			retrieving = FetchPrices(fetchNames);
 			await retrieving;
 		}
 
