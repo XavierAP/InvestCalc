@@ -13,6 +13,10 @@ Program to keep track of investments and calculate their returns.
 * Displays the current portfolio
 (currently owned shares of every stock).
 
+* Automatically retrieve current stock prices from the Internet.
+This is done when the `Stocks.fetchCodes` SQL column is properly set;
+however it's not yet implemented to set this from the UI.
+
 * Display and manipulate order history.
 Can filter by dates and stocks.
 
@@ -20,7 +24,8 @@ Can filter by dates and stocks.
 
 * Calculates the equivalent yearly return of each investment,
 and all investments together.
-This is done after the user has entered the current price(s).
+This is done after the current price is known
+-- either automatically retrieved or manually entered by the user.
 The equivalent yearly return is defined as the interest/discount rate
 that makes the net present value of all cash flows
 equal to the current value
