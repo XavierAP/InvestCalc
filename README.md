@@ -1,3 +1,5 @@
+Note: deprecated in favor of multi-platform and refactored version [investcalc-multiplatform](https://github.com/XavierAP/investcalc-multiplatform)
+
 # InvestCalc
 Program to keep track of investments and calculate their returns.
 
